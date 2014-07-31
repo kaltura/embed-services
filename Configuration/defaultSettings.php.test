@@ -1,0 +1,5 @@
+<?php
+    $gProxyConfig = "test/Configuration/proxyConfig.json";
+    $gLoggerConfig = "test/Configuration/loggerConfig.php";
+    $gDtoDir = "test/DTO/";
+?>
