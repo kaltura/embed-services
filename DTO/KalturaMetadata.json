@@ -1,0 +1,19 @@
+{
+	"pointers":{
+		"root": "",
+		"iterator": ""
+	},
+	"resolver":{
+		"id": "",
+		"partnerId": "",
+		"metadataProfileId": "",
+		"metadataProfileVersion": "",
+		"metadataObjectType": "",
+		"objectId": "",
+		"version": "",
+		"createdAt": "",
+		"updatedAt": "",
+		"status": "",
+		"xml": "{{xml}}"
+	}
+}

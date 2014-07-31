@@ -1,0 +1,25 @@
+{
+	"pointers":{
+		"root": "",
+		"iterator": "",
+		"wrap": ""
+	},
+	"resolver":{
+		"isSiteRestricted": "",
+		"isCountryRestricted": "",
+		"isSessionRestricted": "",
+		"isIpAddressRestricted": "",
+		"isUserAgentRestricted": "",
+		"previewLength": "",
+		"isScheduledNow": "",
+		"isAdmin": "",
+		"streamerType": "",
+		"mediaProtocol": "",
+		"storageProfilesXML": "",
+		"accessControlMessages": {},
+		"accessControlActions": {},
+		"flavorAssets": {},
+		"messages": {},
+		"actions": {}
+	}
+}

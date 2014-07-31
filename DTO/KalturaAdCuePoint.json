@@ -1,0 +1,34 @@
+{
+	"pointers":{
+		"root": "",
+		"iterator": "",
+		"wrap": "",
+		"subTypeIdentifier": {
+
+		},
+		"include": false
+	},
+	"resolver":{
+		"id": "",
+		"cuePointType": "",
+		"status": "",
+		"entryId": "",
+		"partnerId": "",
+		"createdAt": "",
+		"updatedAt": "",
+		"tags": "",
+		"startTime": "",
+		"userId": "",
+		"partnerData": "",
+		"partnerSortValue": "",
+		"forceStop": "",
+		"thumbOffset": "",
+		"systemName": "",
+		"protocolType": "",
+		"sourceUrl": "",
+		"adType": "",
+		"title": "",
+		"endTime": "",
+		"duration": ""
+	}
+}

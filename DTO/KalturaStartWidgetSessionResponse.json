@@ -1,0 +1,12 @@
+{
+	"pointers":{
+		"root": "",
+		"iterator": "",
+		"wrap": ""
+	},
+	"resolver":{
+		"partnerId": "",
+		"ks": "",
+		"userId": ""
+	}
+}

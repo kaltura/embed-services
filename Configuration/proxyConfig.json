@@ -1,0 +1,27 @@
+[
+	{
+		"services": ["uiconf"],
+		"token": "id",
+		"decodeToken": false,
+		"redirectTo": "./uiconf/*",
+		"method": "local",
+		"type": "file",
+		"dataStores": {
+			"uiconf": ""
+		}
+	},
+	{
+		"services": ["multirequest"],
+		"token": "1:filter:freeText",
+		"decodeToken": true,
+		"redirectTo": "",
+		"method": "POST",
+		"type": "rest",
+		"dataStores": {
+			"baseentry": "",
+			"entrycontextdata": "",
+			"flavorassets": "",
+			"cuepoints": ""
+		}
+	}
+]

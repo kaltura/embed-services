@@ -1,0 +1,37 @@
+{
+	"pointers":{
+		"root": "",
+		"iterator": "",
+		"wrap": "",
+		"filters": {
+			"include": "",
+			"exclude": {}
+		}
+	},
+	"resolver":{
+		"flavorParamsId": "",
+		"width": "",
+		"height": "",
+		"bitrate": "",
+		"frameRate": "",
+		"isOriginal": "",
+		"isWeb": "",
+		"containerFormat": "",
+		"videoCodecId": "",
+		"status": "",
+		"id": "",
+		"entryId": "",
+		"partnerId": "",
+		"version": "",
+		"size": "",
+		"tags": "",
+		"fileExt": "",
+		"createdAt": "",
+		"updatedAt": "",
+		"deletedAt": "",
+		"description": "",
+		"partnerData": "",
+		"partnerDescription": "",
+		"actualSourceAssetParamsIds": ""
+	}
+}
