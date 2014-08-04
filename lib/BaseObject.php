@@ -96,68 +96,70 @@ abstract class BaseObject {
                        !empty($dtoConfObj["pointers"]["filters"])) ? $dtoConfObj["pointers"]["filters"] : NULL;
 
         	//Iterate over items and convert using the DTO
-        	foreach ($items as $item) {
-        	    //Check if this is a subType and if it should be included
-        	    $this->loggers->dto->debug("Iterate over item: ".json_encode($item));
-        	    if (isset($dtoConfObj["pointers"]["subTypeIdentifier"]) &&
-                    isset($dtoConfObj["pointers"]["include"])){
-                    if ($dtoConfObj["pointers"]["include"] == true ){
-                        //Check if subType key matches current DTO
-                        foreach($dtoConfObj["pointers"]["subTypeIdentifier"] as $subTypeIdentifierKey => $subTypeIdentifierVal){
-                            if ($subTypeIdentifierVal != $item[$subTypeIdentifierKey]){
-                                $this->loggers->dto->debug("Found different subTypeIdentifierKey(".$subTypeIdentifierKey."), iterate over next item");
+        	if (isset($items) && is_array($items)){
+                foreach ($items as $item) {
+                    //Check if this is a subType and if it should be included
+                    $this->loggers->dto->debug("Iterate over item: ".json_encode($item));
+                    if (isset($dtoConfObj["pointers"]["subTypeIdentifier"]) &&
+                        isset($dtoConfObj["pointers"]["include"])){
+                        if ($dtoConfObj["pointers"]["include"] == true ){
+                            //Check if subType key matches current DTO
+                            foreach($dtoConfObj["pointers"]["subTypeIdentifier"] as $subTypeIdentifierKey => $subTypeIdentifierVal){
+                                if ($subTypeIdentifierVal != $item[$subTypeIdentifierKey]){
+                                    $this->loggers->dto->debug("Found different subTypeIdentifierKey(".$subTypeIdentifierKey."), iterate over next item");
+                                    continue;
+                                }
+                            }
+                        } else {
+                            $this->loggers->dto->debug("Do not include subtype $classKey, iterate over next item");
+                            continue;
+                        }
+                    }
+                    //Filter items
+                    if (!is_null($filters)){
+                        if (isset($filters["exclude"])){
+                            $skip = false;
+                            foreach($filters["exclude"] as $filterKey => $filterVals){
+                                if (isset($item[$filterKey])){
+                                    foreach($filterVals as $filterVal){
+                                        if ($item[$filterKey] == $filterVal){
+                                            $skip = true;
+                                        }
+                                    }
+                                }
+                            }
+                            if ($skip){
                                 continue;
                             }
                         }
-                    } else {
-                        $this->loggers->dto->debug("Do not include subtype $classKey, iterate over next item");
-                        continue;
                     }
-        		}
-        		//Filter items
-        		if (!is_null($filters)){
-        		    if (isset($filters["exclude"])){
-        		        $skip = false;
-        		        foreach($filters["exclude"] as $filterKey => $filterVals){
-        		            if (isset($item[$filterKey])){
-                                foreach($filterVals as $filterVal){
-                                    if ($item[$filterKey] == $filterVal){
-                                        $skip = true;
-                                    }
+                    $resolvedItem = "";
+                    //Resolve keys using DTO mapping definitions
+                    foreach ($resolvers as $resolverKey => $resolverExp) {
+                        if (array_key_exists($resolverKey, $classVarsObj)){
+                            $this->loggers->dto->debug("Found key '".$resolverKey."' in resolver and in implemented class, resolving...");
+                            if (is_array($resolverExp)){
+                                $resolvedItem[$resolverKey] = array();
+                                foreach($resolverExp as $expKey=>$expVal){
+                                    $res = Lexer::getInstance()->resolve($expVal, $item, $data);
+                                    $resolvedItem[$resolverKey][$expKey] = $res;
                                 }
-        		            }
-        		        }
-        		        if ($skip){
-        		            continue;
-        		        }
-        		    }
-        		}
-        		$resolvedItem = "";
-        		//Resolve keys using DTO mapping definitions
-        		foreach ($resolvers as $resolverKey => $resolverExp) {
-					if (array_key_exists($resolverKey, $classVarsObj)){
-					    $this->loggers->dto->debug("Found key '".$resolverKey."' in resolver and in implemented class, resolving...");
-					    if (is_array($resolverExp)){
-		            	    $resolvedItem[$resolverKey] = array();
-		            	    foreach($resolverExp as $expKey=>$expVal){
-		            	        $res = Lexer::getInstance()->resolve($expVal, $item, $data);
-	                            $resolvedItem[$resolverKey][$expKey] = $res;
-		            	    }
-		            	} else {
-		            		$res = Lexer::getInstance()->resolve($resolverExp, $item, $data);
-		            	    $resolvedItem[$resolverKey] = $res;//$dataItem[$key];
-		                }
-        			}
-        		}
-        		$this->loggers->dto->debug("Instantiate implemented class: '".$classKey."' with data = ".json_encode($resolvedItem));
-        		array_push($resolved, new $classKey($resolvedItem));
+                            } else {
+                                $res = Lexer::getInstance()->resolve($resolverExp, $item, $data);
+                                $resolvedItem[$resolverKey] = $res;//$dataItem[$key];
+                            }
+                        }
+                    }
+                    $this->loggers->dto->debug("Instantiate implemented class: '".$classKey."' with data = ".json_encode($resolvedItem));
+                    array_push($resolved, new $classKey($resolvedItem));
+                }
         	}
         }
 
 		$total = microtime(true) - $start;
         $this->loggers->main->info("Resolve DTO time = ".$total. " seconds");
         if ($unwrap){
-		    return $resolved[0];
+		    return isset($resolved[0]) ? $resolved[0] : new $implementClass();
 		} elseif (is_null($responseClass)){
 			return $resolved;
 		} else {

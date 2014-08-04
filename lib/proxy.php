@@ -66,6 +66,12 @@
                     break;
 			}
             $this->response = json_decode($result, true);
+
+            if (empty($this->response) ||
+                is_array($this->response) && count($this->response)){
+                $this->logger->warn("Response is empty");
+            }
+
             $this->logger->debug("Response=". $result);
             $total = microtime(true) - $start;
             $this->logger->info("Response time = ".$total. " seconds");
