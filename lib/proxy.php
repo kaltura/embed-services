@@ -68,7 +68,7 @@
             $this->response = json_decode($result, true);
 
             if (empty($this->response) ||
-                is_array($this->response) && count($this->response)){
+                (is_array($this->response) && count($this->response) == 0)){
                 $this->logger->warn("Response is empty");
             }
 
