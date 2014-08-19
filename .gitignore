@@ -2,4 +2,4 @@
 *.log
 .idea/
 
-Configuration/defaultSettings.php
+Configuration/localSettings.php
