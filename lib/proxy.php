@@ -94,8 +94,10 @@
                 case "POST":
                     curl_setopt($curl, CURLOPT_POST, 1);
 
-                    if ($data)
+                    if ($data){
                         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                    }
+
                     break;
                 case "PUT":
                     curl_setopt($curl, CURLOPT_PUT, 1);
@@ -111,10 +113,39 @@
 
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_HEADER, true );
+            curl_setopt($curl, CURLOPT_USERAGENT, isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '' );
+            $ip = $this->getIp();
+            if ($ip != ""){
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "X_FORWARDED_FOR: $ip", "Expect:"));
+            }
 
-            return curl_exec($curl);
+            $response = curl_exec( $curl );
+            $response = preg_split( '/([\r\n][\r\n])\\1/', $response, 2 );
 
+            list( $headers, $contents ) = $response;
+            $headers = preg_split( '/[\r\n]+/', $headers );
+
+            foreach($headers as $header) {
+                if ( preg_match( '/^(?:Content-Type|Content-Language|Set-Cookie):/i', $header ) ) {
+                    header($header);
+                }
+            }
+
+            return $contents;
 		}
+
+		function getIp(){
+            $ip = '';
+            if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+                $ip = $_SERVER['HTTP_CLIENT_IP'];
+            } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            } else {
+                $ip = $_SERVER['REMOTE_ADDR'];
+            }
+            return $ip;
+        }
 
 		function getFile($method, $url, $data = ""){
             $fileParts = pathinfo($url);
