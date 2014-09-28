@@ -53,17 +53,21 @@ class Main {
 		if (!empty($service) && isset($service) && class_exists($service, false)) {
 			$logger->info("Request service ".$service);
 			$serviceHandler = call_user_func(array(ucfirst($service), 'getClass'));
-			$request = new ProxyRequest($service, $tokens);			
-			$response = $serviceHandler->get();
-
-			if (isset($tokens["callback"])){
-			    return $tokens["callback"]."(".json_encode($response, true).");";
+			if ($serviceHandler->isValidService($tokens)){
+			    $request = new ProxyRequest($service, $tokens);
+                $response = $serviceHandler->get();
 			} else {
-			    if ($serviceHandler->requireSerialization){
+                $response = new stdClass;
+            }
+
+            if (isset($tokens["callback"])){
+                return $tokens["callback"]."(".json_encode($response, true).");";
+            } else {
+                if ($serviceHandler->requireSerialization){
                     $response = @serialize($response);
                 }
-			    return $response;
-			}
+                return $response;
+            }
 		} else {
 		    $logger->warn("Tries to request service ".$service." and service wasn't found!");
 			return array("message" => "service not found!");

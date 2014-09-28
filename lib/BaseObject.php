@@ -8,6 +8,10 @@ abstract class BaseObject {
 		 return new static;
 	}
 
+	public function isValidService($data) {
+	    return true;
+	}
+
 	abstract protected function get();
 
 	public function getDtoConfig($dtoName) {
