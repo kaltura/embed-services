@@ -137,13 +137,14 @@
 
 		function getIp(){
             $ip = '';
-            if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-                $ip = $_SERVER['HTTP_CLIENT_IP'];
-            } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            $http_headers = getallheaders();
+            if (isset($http_headers['X_KALTURA_REMOTE_ADDR'])){
+                $tempList = explode(',', $http_headers['X_KALTURA_REMOTE_ADDR']);
+                $ip = $tempList[0];
             } else {
-                $ip = $_SERVER['REMOTE_ADDR'];
+                $this->logger->warn('Could not retrive origin IP');
             }
+
             return $ip;
         }
 
