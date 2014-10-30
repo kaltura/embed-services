@@ -172,6 +172,20 @@ abstract class BaseObject {
                             if ($skip){
                                 continue;
                             }
+                        } elseif (isset($filters["include"])){
+                            $skip = true;
+                            foreach($filters["include"] as $filterKey => $filterVals){
+                                if (isset($item[$filterKey])){
+                                    foreach($filterVals as $filterVal){
+                                        if ($item[$filterKey] == $filterVal){
+                                            $skip = false;
+                                        }
+                                    }
+                                }
+                            }
+                            if ($skip){
+                                continue;
+                            }
                         }
                     }
                     $resolvedItem = "";
