@@ -3,9 +3,42 @@ abstract class BaseObject {
 
 	private $loggers;
 	private $dtoData = NULL;
+	public $rawDataString = NULL;
+	private $clientConfiguration = NULL;
 
 	public static function getClass() {
 		 return new static;
+	}
+
+	public function setClientConfiguration($data){
+	    $this->rawDataString = $data;
+	    if (isset($data["1:filter:freeText"])){
+            $configObj = json_decode($data["1:filter:freeText"], TRUE);
+            if (isset($configObj["config"])){
+                $filterConfig = $configObj["config"];
+                if (isset($filterConfig[strtolower(get_class($this))])){
+                    $this->clientConfiguration = $filterConfig[strtolower(get_class($this))];
+                }
+            }
+        }
+	}
+
+	private function resolveConfiguration($defaultConfig){
+	    if ($this->clientConfiguration != NULL){
+	        if (isset($this->clientConfiguration["filters"])){
+	            if (!isset($defaultConfig["pointers"]["filters"])){
+                    $defaultConfig["pointers"]["filters"] = array();
+                }
+	            $defaultConfig["pointers"]["filters"] = $this->clientConfiguration["filters"];
+	        }
+	        if (isset($this->clientConfiguration["vars"])){
+	            if (!isset($defaultConfig["pointers"]["vars"])){
+	                $defaultConfig["pointers"]["vars"] = array();
+	            }
+                $defaultConfig["pointers"]["vars"] = array_merge($defaultConfig["pointers"]["vars"], $this->clientConfiguration["vars"]);
+            }
+        }
+        return $defaultConfig;
 	}
 
 	public function isValidService($data) {
@@ -78,6 +111,7 @@ abstract class BaseObject {
 	    $resolved = array();
 	    //Iterate over all data transfer objects
         foreach ($dtoConf as $classKey => $dtoConfObj) {
+            $dtoConfObj = $this->resolveConfiguration($dtoConfObj);
             $this->loggers->dto->info("Resolving ".$classKey);
         	$resolvers = $dtoConfObj["resolver"];
         	$classVarsObj = $classVars[$classKey];
@@ -98,6 +132,9 @@ abstract class BaseObject {
 
         	$filters = (isset($dtoConfObj["pointers"]["filters"]) &&
                        !empty($dtoConfObj["pointers"]["filters"])) ? $dtoConfObj["pointers"]["filters"] : NULL;
+
+        	$vars = (isset($dtoConfObj["pointers"]["vars"]) &&
+                    !empty($dtoConfObj["pointers"]["vars"])) ? $dtoConfObj["pointers"]["vars"] : NULL;
 
         	//Iterate over items and convert using the DTO
         	if (isset($items) && is_array($items)){
@@ -145,11 +182,11 @@ abstract class BaseObject {
                             if (is_array($resolverExp)){
                                 $resolvedItem[$resolverKey] = array();
                                 foreach($resolverExp as $expKey=>$expVal){
-                                    $res = Lexer::getInstance()->resolve($expVal, $item, $data);
+                                    $res = Lexer::getInstance()->resolve($expVal, $item, $data, $vars);
                                     $resolvedItem[$resolverKey][$expKey] = $res;
                                 }
                             } else {
-                                $res = Lexer::getInstance()->resolve($resolverExp, $item, $data);
+                                $res = Lexer::getInstance()->resolve($resolverExp, $item, $data, $vars);
                                 $resolvedItem[$resolverKey] = $res;//$dataItem[$key];
                             }
                         }

@@ -13,9 +13,12 @@ class Lexer{
         return Lexer::$instance;
     }
 
-	function resolve($exp, $itemData, $data){
+	function resolve($exp, $itemData, $data, $vars){
 		if ($this->isBraceExpression($exp)){
 		 	$resolved = $this->resolveBrace($exp, $itemData, $data);
+		 	if ($this->isVarsDataExpression($exp)){
+                $resolved = $this->resolveVarsData($resolved, $vars);
+            }
 			if ($this->isMapExpression($exp)){
                 $resolved = $this->resolveMap($resolved);
             }
@@ -67,6 +70,24 @@ class Lexer{
 		}
 		return $exp;
 	}
+	function isVarsDataExpression($exp){
+        preg_match_all("/\{VARS:(.*?)\}\}/", $exp, $matchedKeys);
+        return (count($matchedKeys[0]) > 0);
+    }
+    function resolveVarsData($exp, $vars){
+        if (preg_match_all("/\{VARS:(.*?)\}\}/", $exp, $matchedKeys)){
+            foreach (array_unique($matchedKeys[1]) as $matchedKey) {
+                //list($e, $d) = $this->resolvePath($matchedKey, $data);
+
+                $item = (isset($vars[$matchedKey])) ? $vars[$matchedKey] : "";
+                if (is_array($item)){
+                    $item = json_encode($item);
+                }
+                $exp = preg_replace("/\{VARS:".$matchedKey."\}\}/", $item, $exp);
+            }
+        }
+        return $exp;
+    }
 	function isMathExpression($exp){
 		preg_match_all("/\{MATH:(.*?)\}\}/", $exp, $matchedMathExps);
 		return (count($matchedMathExps[0]) > 0);

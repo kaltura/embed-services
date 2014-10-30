@@ -16,9 +16,13 @@ class Multirequest extends BaseObject{
 
 	function get() {
 	    $baseEntry = new Baseentry();
+	    $baseEntry->setClientConfiguration($this->rawDataString);
 	    $entryContextData = new EntryContextData();
+	    $entryContextData->setClientConfiguration($this->rawDataString);
 	    $metaData = new Metadata();
+	    $metaData->setClientConfiguration($this->rawDataString);
 	    $cuePoints = new Cuepoints();
+	    $cuePoints->setClientConfiguration($this->rawDataString);
 		return array(
 			$baseEntry ->get(),
 			$entryContextData->get(),
