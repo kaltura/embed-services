@@ -126,10 +126,10 @@ class Lexer{
         return (count($matchedRegexExps[0]) > 0);
     }
     function resolveMap($exp){
-        $found = false;
         $default = "";
         if (preg_match_all("/\{MAP:(.*?)\}\}/", $exp, $matchedExps)){
             foreach (array_unique($matchedExps[1]) as $key=>$matchedExp) {
+                $found = false;
                 list($mapString, $text) = explode("||", $matchedExp);
                 $mapStringArray = explode(",", $mapString);
                 $map = array();
@@ -152,10 +152,11 @@ class Lexer{
                         break;
                     }
                 }
+                if (!$found){
+                    $escapedExp = preg_quote($matchedExps[0][$key], "/");
+                    $exp = preg_replace("/".$escapedExp."/", $default, $exp);
+                }
             }
-        }
-        if (!$found){
-            $exp = $default;
         }
         return $exp;
     }
