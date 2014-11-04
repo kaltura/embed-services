@@ -144,7 +144,7 @@ class Lexer{
                     }
                 }
                 foreach ($map as $keyName => $valName){
-                    preg_match("/$keyName/", $text, $result);
+                    preg_match("/$keyName/i", $text, $result);
                     if (is_array($result) && isset($result[0])){
                         $escapedExp = preg_quote($matchedExps[0][$key], "/");
                         $exp = preg_replace("/".$escapedExp."/", $valName, $exp);
