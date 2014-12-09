@@ -38,6 +38,8 @@ abstract class BaseObject {
                 $defaultConfig["pointers"]["vars"] = array_merge($defaultConfig["pointers"]["vars"], $this->clientConfiguration["vars"]);
             }
         }
+        //Set request data to be available to all DTOs
+        $defaultConfig["pointers"]["vars"]["requestData"] = DataStore::getInstance()->getData("request");
         return $defaultConfig;
 	}
 

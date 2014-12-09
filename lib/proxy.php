@@ -9,7 +9,7 @@
 
 		function __construct($service, $urlTokens){
 		$this->logger = Logger::getLogger("main");
-			$this->config = $this->getConfig();	
+			$this->config = $this->getConfig();
 			foreach($this->config as $config){
 				if (in_array($service, $config["services"])){
 
@@ -17,11 +17,12 @@
 				    if (isset($urlTokens[$config["token"]])){
 				        $this->logger->debug("Found request service token ".$config["token"]." in request");
 				        if ($config["decodeToken"] == "true"){
-						    $partnerRequestData = json_decode($urlTokens[$config["token"]]);
+						    $this->partnerRequestData = json_decode($urlTokens[$config["token"]]);
 						} else {
-						    $partnerRequestData = $urlTokens[$config["token"]];
+						    $this->partnerRequestData = $urlTokens[$config["token"]];
 						}
-						$this->get($config["type"], $config["method"], $config["redirectTo"], $partnerRequestData);
+						$this->get($config["type"], $config["method"], $config["redirectTo"], $this->partnerRequestData);
+						DataStore::getInstance()->setData("request", "", $this->partnerRequestData);
 						$this->setData($config["dataStores"]);
 					}
 				}	
