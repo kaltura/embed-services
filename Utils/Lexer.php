@@ -74,8 +74,10 @@ class Lexer{
 		 		$item = (isset($itemData[$matchedKey])) ? $itemData[$matchedKey] : ((isset($data[$matchedKey])) ? $data[$matchedKey] : "");
 		 		if (is_array($item)){
 		 			$item = json_encode($item);
+		 			$exp = json_decode(preg_replace("/\{\{".$matchedKey."\}\}/", $item, $exp));
+		 		} else {
+		 		    $exp = preg_replace("/\{\{".$matchedKey."\}\}/", $item, $exp);
 		 		}
-		 		$exp = preg_replace("/\{\{".$matchedKey."\}\}/", $item, $exp);
 			}
 		}
 		return $exp;
@@ -88,12 +90,21 @@ class Lexer{
         if (preg_match_all("/\{VARS:(.*?)\}\}/", $exp, $matchedKeys)){
             foreach (array_unique($matchedKeys[1]) as $matchedKey) {
                 //list($e, $d) = $this->resolvePath($matchedKey, $data);
-
-                $item = (isset($vars[$matchedKey])) ? $vars[$matchedKey] : "";
+                if (preg_match_all("/\[(.*?)\]/", $matchedKey, $matchedNestedKeys)){
+                    $keys = explode("[", $matchedKey);
+                    $item = (isset($vars[$keys[0]])) ? $vars[$keys[0]] : "";
+                    foreach ($matchedNestedKeys[1] as $matchedNestedKey) {
+                        $item = (isset(get_object_vars($item)[$matchedNestedKey])) ? get_object_vars($item)[$matchedNestedKey] : "";
+                    }
+                } else {
+                    $item = (isset($vars[$matchedKey])) ? $vars[$matchedKey] : "";
+                }
                 if (is_array($item)){
                     $item = json_encode($item);
+                    $exp = json_decode(preg_replace("/\{VARS:".preg_quote($matchedKey)."\}\}/", $item, $exp));
+                } else {
+                    $exp = preg_replace("/\{VARS:".preg_quote($matchedKey)."\}\}/", $item, $exp);
                 }
-                $exp = preg_replace("/\{VARS:".$matchedKey."\}\}/", $item, $exp);
             }
         }
         return $exp;
