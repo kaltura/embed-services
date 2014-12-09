@@ -130,7 +130,11 @@ class Lexer{
         if (preg_match_all("/\{MAP:(.*?)\}\}/", $exp, $matchedExps)){
             foreach (array_unique($matchedExps[1]) as $key=>$matchedExp) {
                 $found = false;
-                list($mapString, $text) = explode("||", $matchedExp);
+                $mapParts = explode("||", $matchedExp);
+                $mapString = $mapParts[0];
+                $text = $mapParts[1];
+                $options = explode(",", (isset($mapParts[2]) ? $mapParts[2] : ""));
+
                 $mapStringArray = explode(",", $mapString);
                 $map = array();
                 $default = "";
@@ -144,7 +148,11 @@ class Lexer{
                     }
                 }
                 foreach ($map as $keyName => $valName){
-                    preg_match("/$keyName/i", $text, $result);
+                    $find = $keyName;
+                    if (in_array("matchExact", $options)){
+                        $find = "^$find$";
+                    }
+                    preg_match("/$find/i", $text, $result);
                     if (is_array($result) && isset($result[0])){
                         $escapedExp = preg_quote($matchedExps[0][$key], "/");
                         $exp = preg_replace("/".$escapedExp."/", $valName, $exp);
