@@ -14,25 +14,35 @@ class Lexer{
     }
 
 	function resolve($exp, $itemData, $data, $vars){
-		if ($this->isBraceExpression($exp)){
-		 	$resolved = $this->resolveBrace($exp, $itemData, $data);
-		 	if ($this->isVarsDataExpression($exp)){
+		if (is_array($exp)){
+		    foreach ($exp as $expKey => $expItem) {
+                $resolved[$expKey] =  $this->resolveItem($expItem, $itemData, $data, $vars);
+            }
+            return $resolved;
+		} else {
+		    return $this->resolveItem($exp, $itemData, $data, $vars);
+		}
+	}
+	function resolveItem($exp, $itemData, $data, $vars){
+	    if ($this->isBraceExpression($exp) || $this->isVarsDataExpression($exp)){
+            $resolved = $this->resolveBrace($exp, $itemData, $data);
+            if ($this->isVarsDataExpression($exp)){
                 $resolved = $this->resolveVarsData($resolved, $vars);
             }
-			if ($this->isMapExpression($exp)){
+            if ($this->isMapExpression($exp)){
                 $resolved = $this->resolveMap($resolved);
             }
-			if ($this->isRegexExpression($exp)){
-				$resolved = $this->resolveRegex($resolved);
-			}
-			if ($this->isMathExpression($exp)){
-				$resolved = $this->resolveMath($resolved);
-			}			
-			$item = $resolved;
-		} else {
-		    $item = $exp;
-		}
-		return $item;
+            if ($this->isRegexExpression($exp)){
+                $resolved = $this->resolveRegex($resolved);
+            }
+            if ($this->isMathExpression($exp)){
+                $resolved = $this->resolveMath($resolved);
+            }
+            $item = $resolved;
+        } else {
+            $item = $exp;
+        }
+        return $item;
 	}
 	function resolvePath($exp, $data){
 	    $resolved = array();
