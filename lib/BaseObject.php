@@ -40,6 +40,8 @@ abstract class BaseObject {
         }
         //Set request data to be available to all DTOs
         $defaultConfig["pointers"]["vars"]["requestData"] = DataStore::getInstance()->getData("request");
+        global $wgEmbedServicesVersion;
+        $defaultConfig["pointers"]["vars"]["embedServicesVersion"] = $wgEmbedServicesVersion;
         return $defaultConfig;
 	}
 
