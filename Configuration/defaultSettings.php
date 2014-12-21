@@ -1,6 +1,6 @@
 <?php
     // The version of the library:
-    $wgEmbedServicesVersion = '0.2.rc6';
+    $wgEmbedServicesVersion = '0.2.rc7';
 
     // Default debug mode
     $wgEnableScriptDebug = false;
