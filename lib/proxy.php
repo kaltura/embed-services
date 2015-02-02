@@ -22,7 +22,7 @@
 						    $this->partnerRequestData = $urlTokens[$config["token"]];
 						}
 						$this->get($config["type"], $config["method"], $config["redirectTo"], $this->partnerRequestData);
-						DataStore::getInstance()->setData("request", "", $this->partnerRequestData);
+						DataStore::getInstance()->setData("request", "", json_decode(json_encode($this->partnerRequestData), true));
 						$this->setData($config["dataStores"]);
 					}
 				}	
