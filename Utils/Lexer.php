@@ -13,23 +13,36 @@ class Lexer{
         return Lexer::$instance;
     }
 
-	function resolve($exp, $itemData, $data){
-		if ($this->isBraceExpression($exp)){
-		 	$resolved = $this->resolveBrace($exp, $itemData, $data);
-			if ($this->isMapExpression($exp)){
+	function resolve($exp, $itemData, $data, $vars){
+		if (is_array($exp)){
+		    foreach ($exp as $expKey => $expItem) {
+                $resolved[$expKey] =  $this->resolveItem($expItem, $itemData, $data, $vars);
+            }
+            return $resolved;
+		} else {
+		    return $this->resolveItem($exp, $itemData, $data, $vars);
+		}
+	}
+	function resolveItem($exp, $itemData, $data, $vars){
+	    if ($this->isBraceExpression($exp) || $this->isVarsDataExpression($exp)){
+            $resolved = $this->resolveBrace($exp, $itemData, $data);
+            if ($this->isVarsDataExpression($exp)){
+                $resolved = $this->resolveVarsData($resolved, $vars);
+            }
+            if ($this->isMapExpression($exp)){
                 $resolved = $this->resolveMap($resolved);
             }
-			if ($this->isRegexExpression($exp)){
-				$resolved = $this->resolveRegex($resolved);
-			}
-			if ($this->isMathExpression($exp)){
-				$resolved = $this->resolveMath($resolved);
-			}			
-			$item = $resolved;
-		} else {
-		    $item = $exp;
-		}
-		return $item;
+            if ($this->isRegexExpression($exp)){
+                $resolved = $this->resolveRegex($resolved);
+            }
+            if ($this->isMathExpression($exp)){
+                $resolved = $this->resolveMath($resolved);
+            }
+            $item = $resolved;
+        } else {
+            $item = $exp;
+        }
+        return $item;
 	}
 	function resolvePath($exp, $data){
 	    $resolved = array();
@@ -61,12 +74,41 @@ class Lexer{
 		 		$item = (isset($itemData[$matchedKey])) ? $itemData[$matchedKey] : ((isset($data[$matchedKey])) ? $data[$matchedKey] : "");
 		 		if (is_array($item)){
 		 			$item = json_encode($item);
+		 			$exp = json_decode(preg_replace("/\{\{".$matchedKey."\}\}/", $item, $exp));
+		 		} else {
+		 		    $exp = preg_replace("/\{\{".$matchedKey."\}\}/", $item, $exp);
 		 		}
-		 		$exp = preg_replace("/\{\{".$matchedKey."\}\}/", $item, $exp);
 			}
 		}
 		return $exp;
 	}
+	function isVarsDataExpression($exp){
+        preg_match_all("/\{VARS:(.*?)\}\}/", $exp, $matchedKeys);
+        return (count($matchedKeys[0]) > 0);
+    }
+    function resolveVarsData($exp, $vars){
+        if (preg_match_all("/\{VARS:(.*?)\}\}/", $exp, $matchedKeys)){
+            foreach (array_unique($matchedKeys[1]) as $matchedKey) {
+                //list($e, $d) = $this->resolvePath($matchedKey, $data);
+                if (preg_match_all("/\[(.*?)\]/", $matchedKey, $matchedNestedKeys)){
+                    $keys = explode("[", $matchedKey);
+                    $item = (isset($vars[$keys[0]])) ? $vars[$keys[0]] : "";
+                    foreach ($matchedNestedKeys[1] as $matchedNestedKey) {
+                        $item = (isset(get_object_vars($item)[$matchedNestedKey])) ? get_object_vars($item)[$matchedNestedKey] : "";
+                    }
+                } else {
+                    $item = (isset($vars[$matchedKey])) ? $vars[$matchedKey] : "";
+                }
+                if (is_array($item)){
+                    $item = json_encode($item);
+                    $exp = json_decode(preg_replace("/\{VARS:".preg_quote($matchedKey)."\}\}/", $item, $exp));
+                } else {
+                    $exp = preg_replace("/\{VARS:".preg_quote($matchedKey)."\}\}/", $item, $exp);
+                }
+            }
+        }
+        return $exp;
+    }
 	function isMathExpression($exp){
 		preg_match_all("/\{MATH:(.*?)\}\}/", $exp, $matchedMathExps);
 		return (count($matchedMathExps[0]) > 0);
@@ -105,11 +147,15 @@ class Lexer{
         return (count($matchedRegexExps[0]) > 0);
     }
     function resolveMap($exp){
-        $found = false;
         $default = "";
         if (preg_match_all("/\{MAP:(.*?)\}\}/", $exp, $matchedExps)){
             foreach (array_unique($matchedExps[1]) as $key=>$matchedExp) {
-                list($mapString, $text) = explode("||", $matchedExp);
+                $found = false;
+                $mapParts = explode("||", $matchedExp);
+                $mapString = $mapParts[0];
+                $text = $mapParts[1];
+                $options = explode(",", (isset($mapParts[2]) ? $mapParts[2] : ""));
+
                 $mapStringArray = explode(",", $mapString);
                 $map = array();
                 $default = "";
@@ -123,7 +169,11 @@ class Lexer{
                     }
                 }
                 foreach ($map as $keyName => $valName){
-                    preg_match("/$keyName/", $text, $result);
+                    $find = $keyName;
+                    if (in_array("matchExact", $options)){
+                        $find = "^$find$";
+                    }
+                    preg_match("/$find/i", $text, $result);
                     if (is_array($result) && isset($result[0])){
                         $escapedExp = preg_quote($matchedExps[0][$key], "/");
                         $exp = preg_replace("/".$escapedExp."/", $valName, $exp);
@@ -131,10 +181,11 @@ class Lexer{
                         break;
                     }
                 }
+                if (!$found){
+                    $escapedExp = preg_quote($matchedExps[0][$key], "/");
+                    $exp = preg_replace("/".$escapedExp."/", $default, $exp);
+                }
             }
-        }
-        if (!$found){
-            $exp = $default;
         }
         return $exp;
     }

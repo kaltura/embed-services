@@ -9,7 +9,7 @@
 
 		function __construct($service, $urlTokens){
 		$this->logger = Logger::getLogger("main");
-			$this->config = $this->getConfig();	
+			$this->config = $this->getConfig();
 			foreach($this->config as $config){
 				if (in_array($service, $config["services"])){
 
@@ -17,11 +17,12 @@
 				    if (isset($urlTokens[$config["token"]])){
 				        $this->logger->debug("Found request service token ".$config["token"]." in request");
 				        if ($config["decodeToken"] == "true"){
-						    $partnerRequestData = json_decode($urlTokens[$config["token"]]);
+						    $this->partnerRequestData = json_decode($urlTokens[$config["token"]]);
 						} else {
-						    $partnerRequestData = $urlTokens[$config["token"]];
+						    $this->partnerRequestData = $urlTokens[$config["token"]];
 						}
-						$this->get($config["type"], $config["method"], $config["redirectTo"], $partnerRequestData);
+						$this->get($config["type"], $config["method"], $config["redirectTo"], $this->partnerRequestData);
+						DataStore::getInstance()->setData("request", "", json_decode(json_encode($this->partnerRequestData), true));
 						$this->setData($config["dataStores"]);
 					}
 				}	
@@ -94,8 +95,10 @@
                 case "POST":
                     curl_setopt($curl, CURLOPT_POST, 1);
 
-                    if ($data)
+                    if ($data){
                         curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+                    }
+
                     break;
                 case "PUT":
                     curl_setopt($curl, CURLOPT_PUT, 1);
@@ -111,10 +114,40 @@
 
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_HEADER, true );
+            curl_setopt($curl, CURLOPT_USERAGENT, isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '' );
+            $ip = $this->getIp();
+            if ($ip != ""){
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "X_FORWARDED_FOR: $ip", "Expect:"));
+            }
 
-            return curl_exec($curl);
+            $response = curl_exec( $curl );
+            $response = preg_split( '/([\r\n][\r\n])\\1/', $response, 2 );
 
+            list( $headers, $contents ) = $response;
+            $headers = preg_split( '/[\r\n]+/', $headers );
+
+            foreach($headers as $header) {
+                if ( preg_match( '/^(?:Content-Type|Content-Language|Set-Cookie):/i', $header ) ) {
+                    header($header);
+                }
+            }
+
+            return $contents;
 		}
+
+		function getIp(){
+            $ip = '';
+            $http_headers = getallheaders();
+            if (isset($http_headers['X_KALTURA_REMOTE_ADDR'])){
+                $tempList = explode(',', $http_headers['X_KALTURA_REMOTE_ADDR']);
+                $ip = $tempList[0];
+            } else {
+                $this->logger->warn('Could not retrive origin IP');
+            }
+
+            return $ip;
+        }
 
 		function getFile($method, $url, $data = ""){
             $fileParts = pathinfo($url);

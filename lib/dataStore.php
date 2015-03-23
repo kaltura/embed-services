@@ -13,6 +13,7 @@ class DataStore {
         }
         return DataStore::$instance;
     }
+    private $requestData = array();
 	private $baseentryData = array();	
 	private $metadataData = array();
 	private $sessionData = array();
@@ -24,6 +25,9 @@ class DataStore {
 	function getData($key) {
 		
 		switch($key){
+		    case "request":
+        		$data = $this->requestData;
+        		break;
 			case "baseentry":
 				$data = $this->baseentryData;
 				break;
@@ -54,6 +58,9 @@ class DataStore {
 	function setData($key, $container, $data, $merge = true) {
 		
 		switch($key){
+		    case "request":
+                $this->_setData($this->requestData, $container, $data, $merge);
+                break;
 			case "baseentry":
 				$this->_setData($this->baseentryData, $container, $data, $merge);
 				break;
