@@ -39,6 +39,8 @@ class Lexer{
                 $resolved = $this->resolveMath($resolved);
             }
             $item = $resolved;
+        } elseif ($this->isCustomFuncExpression($exp, $itemData, $data)){
+            $item = $this->resolveCustomFunc($exp, $itemData, $data);
         } else {
             $item = $exp;
         }
@@ -188,6 +190,28 @@ class Lexer{
             }
         }
         return $exp;
+    }
+    function isCustomFuncExpression($exp){
+        preg_match_all("/\{CUST_FUNC:(.*?)\}\}/", $exp, $matchedRegexExps);
+        return (count($matchedRegexExps[0]) > 0);
+    }
+    function resolveCustomFunc($exp, $itemData, $data){
+		if (preg_match_all("/\{CUST_FUNC:(.*?)\}\}/", $exp, $matchedExps)){
+			foreach (array_unique($matchedExps[1]) as $key=>$matchedExp) {
+                if (class_exists($matchedExp)){
+                    $custResolver = new $matchedExp;
+                    $res = $custResolver->run();
+                    $escapedExp = preg_quote($matchedExps[0][$key], "/");
+                    if (is_array($res)){
+                        $res = json_encode($res);
+                        $exp = json_decode(preg_replace("/".$escapedExp."/", $res, $exp));
+                    } else {
+                        $exp = preg_replace("/".$escapedExp."/", $res, $exp);
+                    }
+                }
+            }
+		}
+		return $exp;
     }
 }
 ?>

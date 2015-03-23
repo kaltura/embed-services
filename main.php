@@ -26,7 +26,7 @@ $logger->info("Finish process in ".$total. " seconds");
 class Main {
 
 	function __construct() {
-	    $requiredModules = array('/lib', '/lib/objects', '/Utils', '/lib/kaltura_client_v3', '/lib/kaltura_client_v3/KalturaPlugins');
+	    $requiredModules = array('/lib', '/lib/objects', '/lib/objects/custom', '/Utils', '/lib/kaltura_client_v3', '/lib/kaltura_client_v3/KalturaPlugins');
 	    foreach ($requiredModules as $requiredModule) {
 	        $this->loadModules($requiredModule);
 	    }
