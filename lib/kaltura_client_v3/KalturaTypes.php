@@ -12490,6 +12490,14 @@ class KalturaEntryContextDataResult extends KalturaContextDataResult
 	 */
 	public $flavorAssets;
 
+	/**
+     * Protocol of the specific media object.
+     *
+     *
+     * @var array
+     */
+    public $flavorCustomData;
+
 
 }
 

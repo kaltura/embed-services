@@ -15,6 +15,7 @@
 		"isAdmin": "",
 		"streamerType": "",
 		"mediaProtocol": "",
+        "flavorCustomData": "",
 		"storageProfilesXML": "",
 		"accessControlMessages": {},
 		"accessControlActions": {},
