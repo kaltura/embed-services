@@ -8,7 +8,7 @@
 		private $logger;
 
 		function __construct($service, $urlTokens){
-		$this->logger = Logger::getLogger("main");
+		    $this->logger = Logger::getLogger("main");
 			$this->config = $this->getConfig();
 			foreach($this->config as $config){
 				if (in_array($service, $config["services"])){

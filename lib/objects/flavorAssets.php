@@ -9,6 +9,10 @@ class FlavorAssets extends BaseObject {
 		$this->data = $this->getData();
 	}
 
+	function run(){
+        return new stdClass;
+    }
+
 	function get() {
 		return $this->resolveDtoList("KalturaFlavorAsset");	
 	}

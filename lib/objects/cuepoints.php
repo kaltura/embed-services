@@ -8,6 +8,10 @@ class Cuepoints extends BaseObject {
 	function __construct() {		
 	}
 
+	function run(){
+        return new stdClass;
+    }
+
 	function get() {
 		return $this->resolveDtoList(array("KalturaAnnotation", "KalturaAdCuePoint"), "KalturaMetadataListResponse");
 	}

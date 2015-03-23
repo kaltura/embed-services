@@ -2,6 +2,7 @@
 class Multirequest extends BaseObject{
 
     public $requireSerialization = true;
+    private $serviceName = "multirequest";
 
 	function __construct() {
 	}
@@ -12,6 +13,12 @@ class Multirequest extends BaseObject{
          } else {
             return false;
         }
+    }
+
+    function run($tokens){
+        $request = new ProxyRequest($this->serviceName, $tokens);
+        $this->setClientConfiguration($tokens);
+        return $this->get();
     }
 
 	function get() {

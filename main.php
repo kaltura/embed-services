@@ -54,9 +54,7 @@ class Main {
 			$logger->info("Request service ".$service);
 			$serviceHandler = call_user_func(array(ucfirst($service), 'getClass'));
 			if ($serviceHandler->isValidService($tokens)){
-			    $request = new ProxyRequest($service, $tokens);
-			    $serviceHandler->setClientConfiguration($tokens);
-                $response = $serviceHandler->get();
+			    $response = $serviceHandler->run($tokens);
 			} else {
                 $response = new stdClass;
             }
