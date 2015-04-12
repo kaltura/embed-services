@@ -26,7 +26,7 @@ class flavorCustomData {
                     "user_token" => $siteGuid,
                     "account_id" => $wgTvpapiAccountId,
                     "content_id" => $val["CoGuid"],
-                    "file_ids" => "",
+                    "files" => "",
                     "udid" => $udid
                 ));
 

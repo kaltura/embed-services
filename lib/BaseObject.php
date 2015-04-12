@@ -117,17 +117,20 @@ abstract class BaseObject {
         foreach ($dtoConf as $classKey => $dtoConfObj) {
             $dtoConfObj = $this->resolveConfiguration($dtoConfObj);
             $this->loggers->dto->info("Resolving ".$classKey);
+            //Fetch the key-value pairs mappings
         	$resolvers = $dtoConfObj["resolver"];
+        	//Get the Kaltura object class properties names
         	$classVarsObj = $classVars[$classKey];
         	$this->loggers->dto->debug("classVarsObj=".json_encode($classVarsObj));
 
+        	//Check if an iterator is set
         	$iterator = isset($dtoConfObj["pointers"]["iterator"]) &&
         				!empty($dtoConfObj["pointers"]["iterator"]) ||
         				is_numeric($dtoConfObj["pointers"]["iterator"]) ? $dtoConfObj["pointers"]["iterator"] : NULL;
 
         	$this->loggers->dto->info("Set iterator: ".$iterator);
 
-  			//Fetch items to iterate over
+  			//Fetch data to iterate over
   			$items = (!is_null($iterator) || is_numeric($iterator)) ? $data[$iterator] : $data;
   			// check if needs wrapping for iterator
   			$items = (isset($dtoConfObj["pointers"]["wrap"]) && $dtoConfObj["pointers"]["wrap"] == "true") ? array($items) : $items;
@@ -140,7 +143,7 @@ abstract class BaseObject {
         	$vars = (isset($dtoConfObj["pointers"]["vars"]) &&
                     !empty($dtoConfObj["pointers"]["vars"])) ? $dtoConfObj["pointers"]["vars"] : NULL;
 
-        	//Iterate over items and convert using the DTO
+        	//Iterate over data and convert using the DTO
         	if (isset($items) && is_array($items)){
                 foreach ($items as $item) {
                     //Check if this is a subType and if it should be included
