@@ -1,6 +1,6 @@
 <?php
 
-require_once (dirname(__FILE__)."/Configuration/defaultSettings.php");
+require_once (dirname(__FILE__)."/Configuration/DefaultSettings.php");
 include_once (dirname(__FILE__).'/Utils/logger/Logger.php');
 include_once ($gLoggerConfig);
 
