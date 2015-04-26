@@ -36,8 +36,8 @@ class flavorCustomData {
                 $encryptionUrl = $wgKalturaUdrmEncryptionServer."?custom_data=".$custom_data."&signature=".$signature;
                 $response = $this->getJson($encryptionUrl);
                 $contentId = "";
-                if (isset($response["key_id"])){
-                    $contentId = $response["key_id"];
+                if (isset($response) && is_array($response) && isset($response[0]) && isset($response[0]["key_id"])){
+                    $contentId = $response[0]["key_id"];
                 }
 
                 $flavorCustomData[ $val["FileID"] ] = array(
@@ -45,7 +45,7 @@ class flavorCustomData {
                         "custom_data" => $custom_data,
                         "signature" => $signature
                     ),
-                    "contentId" => $contentId,
+                    "contentId" => $contentId
                 );
             }
 	    }
