@@ -4,51 +4,78 @@ class flavorCustomData {
 
 	var $data;
 	public $requireSerialization = true;
+	private $logger;
 
 	function __construct() {
-
+	    $this->logger = Logger::getLogger("UDRM");
 	}
 
 	function run(){
+        $this->logger->info("Start UDRM process");
+        $start = microtime(true);
+
 	    global $wgKalturaUdrmSecret;
 	    global $wgTvpapiAccountId;
 	    global $wgKalturaUdrmEncryptionServer;
         $custom_data = array();
 	    $reqData = DataStore::getInstance()->getData("request");
-	    $siteGuid = $reqData["initObj"]["SiteGuid"];
-	    $udid = $reqData["initObj"]["UDID"];
-	    $flavorassets = DataStore::getInstance()->getData("flavorassets");
-	    $flavorCustomData = array();
-	    if (isset($flavorassets["Files"])){
-            foreach ($flavorassets["Files"] as $key => $val) {
-                $data = json_encode(array(
-                    "ca_system" => 'OTT',
-                    "user_token" => $siteGuid,
-                    "account_id" => $wgTvpapiAccountId,
-                    "content_id" => $val["CoGuid"],
-                    "files" => "",
-                    "udid" => $udid
-                ));
+	    if (isset ($reqData) &&
+	        isset ($reqData["initObj"]) &&
+	        isset ($reqData["initObj"]["SiteGuid"]) &&
+	        isset ($reqData["initObj"]["UDID"])){
+            $siteGuid = $reqData["initObj"]["SiteGuid"];
+            $udid = $reqData["initObj"]["UDID"];
+            $flavorassets = DataStore::getInstance()->getData("flavorassets");
+            $flavorCustomData = array();
+            if (isset($flavorassets["Files"])){
+                foreach ($flavorassets["Files"] as $key => $val) {
+                    $data = json_encode(array(
+                        "ca_system" => 'OTT',
+                        "user_token" => $siteGuid,
+                        "account_id" => $wgTvpapiAccountId,
+                        "content_id" => $val["CoGuid"],
+                        "files" => "",
+                        "udid" => $udid
+                    ));
 
-                $custom_data = rawurlencode(base64_encode($data));
-                $signature = rawurlencode(base64_encode(sha1($wgKalturaUdrmSecret . $data, true)));
+                    $this->logger->debug("Flavor UDRM metadata: " . $data);
 
-                $encryptionUrl = $wgKalturaUdrmEncryptionServer."?custom_data=".$custom_data."&signature=".$signature;
-                $response = $this->getJson($encryptionUrl);
-                $contentId = "";
-                if (isset($response["key_id"])){
-                    $contentId = $response["key_id"];
+                    $custom_data = rawurlencode(base64_encode($data));
+                    $signature = rawurlencode(base64_encode(sha1($wgKalturaUdrmSecret . $data, true)));
+
+                    $encryptionUrl = $wgKalturaUdrmEncryptionServer."?custom_data=".$custom_data."&signature=".$signature;
+                    $this->logger->info("UDRM encryption request: " . $encryptionUrl);
+                    $response = $this->getJson($encryptionUrl);
+                    $contentId = "";
+                    $e = 0;
+                    if (isset($response) && is_array($response) && isset($response[0]) && isset($response[0]["key_id"])){
+                        $contentId = $response[0]["key_id"];
+                        $e=1;
+                    } elseif ( isset($response["key_id"])){
+                        $contentId = $response["key_id"];
+                        $e=2;
+                    }
+
+                    $flavorCustomData[ $val["FileID"] ] = array(
+                        "license" => array (
+                            "custom_data" => $custom_data,
+                            "signature" => $signature
+                        ),
+                        "contentId" => $contentId,
+                        "s" => $e,
+                        "response" =>$response,
+                        "url"=>$encryptionUrl
+                    );
+                    $this->logger->debug("Flavor UDRM data: " . json_encode($flavorCustomData[ $val["FileID"] ]));
                 }
-
-                $flavorCustomData[ $val["FileID"] ] = array(
-                    "license" => array (
-                        "custom_data" => $custom_data,
-                        "signature" => $signature
-                    ),
-                    "contentId" => $contentId,
-                );
             }
-	    }
+        } else {
+            $this->logger->warn("UDRM service: Request data not found, skipping UDRM request");
+        }
+	    
+	    $total = microtime(true) - $start;
+        $this->logger->info("Finish UDRM process in ".$total. " seconds");
+	    
 	    return $flavorCustomData;
 	}
 
@@ -65,10 +92,13 @@ class flavorCustomData {
 
         try{
             $result = json_decode(curl_exec($cURL), true);
-            if(curl_errno($cURL)){
+            $cUrlError = curl_error($cURL);
+            if($cUrlError){
+                $this->logger->error("UDRM request failed " . $cUrlError);
                 $result = "";
             }
         } catch ( Exception $e){
+            $this->logger->error("UDRM request failed " . $e->getMessage());
             $result = "";
         }
         curl_close($cURL);
