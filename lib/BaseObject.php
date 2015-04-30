@@ -89,7 +89,9 @@ abstract class BaseObject {
         $this->loggers->main = Logger::getLogger("main");
         $this->loggers->dto = Logger::getLogger("DTO");
         $this->loggers->main->info("Resolving ".get_called_class());
-        $start = microtime(true);
+
+        $timer = new Timer();
+        $timer->start();
 
 		//Fetch data
 		$data = $this->getData();
@@ -218,8 +220,8 @@ abstract class BaseObject {
         	}
         }
 
-		$total = microtime(true) - $start;
-        $this->loggers->main->info("Resolve DTO time = ".$total. " seconds");
+		$timer->stop();
+        $this->loggers->main->info("Resolve DTO time = ".$timer->getTimeMs(). " ms");
         if ($unwrap){
 		    return isset($resolved[0]) ? $resolved[0] : new $implementClass();
 		} elseif (is_null($responseClass)){

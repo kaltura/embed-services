@@ -57,7 +57,8 @@
             $this->logger->debug("Routing type: ".$type.", method: ".$method);
             $this->logger->debug("Routing request with params=". $data);
 
-            $start = microtime(true);
+            $timer = new Timer();
+            $timer->start();
 			switch($type){
 			    case "file":
 			        $result = $this->getFile($method, $url, $data);
@@ -74,8 +75,8 @@
             }
 
             $this->logger->debug("Response=". $result);
-            $total = microtime(true) - $start;
-            $this->logger->info("Response time = ".$total. " seconds");
+            $timer->stop();
+            $this->logger->info("Response time = ".$timer->getTimeMs(). " ms");
 		}
 
 		function setData($dataStores){
@@ -143,7 +144,7 @@
                 $tempList = explode(',', $http_headers['X_KALTURA_REMOTE_ADDR']);
                 $ip = $tempList[0];
             } else {
-                $this->logger->warn('Could not retrive origin IP');
+                $this->logger->warn('Could not retrieve origin IP');
             }
 
             return $ip;

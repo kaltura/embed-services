@@ -13,15 +13,15 @@ error_reporting($currErrorLevel);
 $logger = Logger::getLogger("main");
 $logger->info("Start process");
 $logger->info("Request received: ".$_SERVER["REQUEST_URI"]);
-$start = microtime(true);
 
 $qs       = $_SERVER['QUERY_STRING'];
 $main     = new Main();
+$timer = new Timer();
+$timer->start();
 $response = $main->resolveRequest($qs);
 print_r($response);
-$total = microtime(true) - $start;
-
-$logger->info("Finish process in ".$total. " seconds");
+$timer->stop();
+$logger->info("Finish process in ".$timer->getTimeMs(). " ms");
 
 class Main {
 
