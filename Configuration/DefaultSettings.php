@@ -1,6 +1,6 @@
 <?php
     // The version of the library:
-    $wgEmbedServicesVersion = '0.3.rc3';
+    $wgEmbedServicesVersion = '0.3.rc4';
 
     // Default debug mode
     $wgEnableScriptDebug = false;
@@ -10,7 +10,7 @@
     $gLoggerConfig = "Configuration/loggerConfig.php";
     $gDtoDir = "DTO/";
 
-
+    //cUrl connection timeout
     $cUrlTimeout = 10;
 
 
