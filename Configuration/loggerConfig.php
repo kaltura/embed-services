@@ -8,6 +8,9 @@
             'main' => array(
                 'appenders' => array('myMainAppender')
             ),
+            'UDRM' => array(
+                'appenders' => array('myMainAppender')
+            ),
             'DTO' => array(
                 'appenders' => array('myMainAppender')
             )
