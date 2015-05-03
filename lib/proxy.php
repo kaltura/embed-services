@@ -8,7 +8,7 @@
 		private $logger;
 
 		function __construct($service, $urlTokens){
-		    $this->logger = Logger::getLogger("main");
+		    $this->logger = Logger::getLogger("proxy");
 			$this->config = $this->getConfig();
 			foreach($this->config as $config){
 				if (in_array($service, $config["services"])){
@@ -80,7 +80,7 @@
 		}
 
 		function setData($dataStores){
-		    $this->logger->info("Set data");
+		    $this->logger->info("Set response data in containers");
 			foreach ($dataStores as $dataStore => $container) {
 			    $this->logger->debug("Set ".$dataStore." data in container ". $container);
 				DataStore::getInstance()->setData($dataStore, $container, $this->response);
@@ -126,6 +126,7 @@
             $response = preg_split( '/([\r\n][\r\n])\\1/', $response, 2 );
 
             list( $headers, $contents ) = $response;
+            $this->logger->debug("Response headers=". $headers);
             $headers = preg_split( '/[\r\n]+/', $headers );
 
             foreach($headers as $header) {
@@ -140,10 +141,15 @@
 		function getIp(){
             $ip = '';
             $http_headers = getallheaders();
-            if (isset($http_headers['X_KALTURA_REMOTE_ADDR'])){
+            if (isset($http_headers['X-KALTURA-REMOTE-ADDR'])){
+                $tempList = explode(',', $http_headers['X-KALTURA-REMOTE-ADDR']);
+                $ip = $tempList[0];
+                $this->logger->debug("Request origin IP=". $ip);
+            } elseif (isset($http_headers['X_KALTURA_REMOTE_ADDR'])){
                 $tempList = explode(',', $http_headers['X_KALTURA_REMOTE_ADDR']);
                 $ip = $tempList[0];
-            } else {
+                $this->logger->debug("Request origin IP=". $ip);
+            }else {
                 $this->logger->warn('Could not retrieve origin IP');
             }
 

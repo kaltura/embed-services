@@ -13,6 +13,8 @@
     //cUrl connection timeout
     $cUrlTimeout = 10;
 
+    //Set unique ID for log
+    $_SERVER['suid'] = str_replace(".", "", microtime(true));
 
     /*********************************************************
      * Include local settings override:
