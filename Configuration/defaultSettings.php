@@ -1,6 +1,6 @@
 <?php
     // The version of the library:
-    $wgEmbedServicesVersion = '0.3.rc2';
+    $wgEmbedServicesVersion = '0.3.rc2.1';
 
     // Default debug mode
     $wgEnableScriptDebug = false;
@@ -10,6 +10,8 @@
     $gLoggerConfig = "Configuration/loggerConfig.php";
     $gDtoDir = "DTO/";
 
+    //Set unique ID for log
+    $_SERVER['suid'] = str_replace(".", "", microtime(true));
 
     /*********************************************************
      * Include local settings override:

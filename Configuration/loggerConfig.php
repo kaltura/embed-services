@@ -8,6 +8,9 @@
             'main' => array(
                 'appenders' => array('myMainAppender')
             ),
+            'proxy' => array(
+                'appenders' => array('myMainAppender')
+            ),
             'DTO' => array(
                 'appenders' => array('myMainAppender')
             )
@@ -18,7 +21,7 @@
                 'layout' => array(
                     'class' => 'LoggerLayoutPattern',
                     'params' => array(
-                        'conversionPattern' => "%date [%logger] %message%newline"
+                        'conversionPattern' => "%s{suid} %date [%logger] %message%newline"
                     )
                 ),
                 'params' => array(
