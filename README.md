@@ -17,7 +17,7 @@ Enable player server side bundler to pass proxy data from embed code to external
 
 Create synchronous event points in player to allow plugins to handle data transforms for external providers.
 
-![SystemOverview](Assets/SystemOverview.png)
+![SystemOverview](http://kaltura.github.io/embed-services/Assets/SystemOverview.png)
 
 ## Components
 
@@ -47,7 +47,7 @@ Proxy sequence is:
 2. Server side bundler issues requests to the embed-services server.
 3. Embed-Services bridge parses request and determines which external end point API call to issue. 
 
-![Proxy](Assets/proxy.png)
+![Proxy](http://kaltura.github.io/embed-services/Assets/proxy.png)
 
 ### Note
 > A single player server side request may contain multiple API calls.
@@ -58,7 +58,7 @@ The mapper is responsible to map data store items, collected from the external v
 
 Each mapper implements one or more Kaltura data types, and uses JSON configuration in order to know what and how to map.
 
-![Mapper](Assets/Mapper.png)
+![Mapper](http://kaltura.github.io/embed-services/Assets/Mapper.png)
 
 ## Configuration
 Configuration files are simple JSON files that map data from one data source to another, e.g. from External data source to Kaltura data type objects.
@@ -117,7 +117,7 @@ The Proxy layer will be used against calls coming from the player server side bu
 
 ### Flowchart Diagram
 
-![ProxySequence](Assets/ProxySequence.png)
+![ProxySequence](http://kaltura.github.io/embed-services/Assets/ProxySequence.png)
 
 # Deployment&Embedding
 
