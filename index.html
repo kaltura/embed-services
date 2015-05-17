@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Embed-Services by kaltura</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Embed-Services</h1>
+      <h2 class="project-tagline"></h2>
+      <a href="https://github.com/kaltura/embed-services" class="btn">View on GitHub</a>
+      <a href="https://github.com/kaltura/embed-services/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/kaltura/embed-services/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="preface" class="anchor" href="#preface" aria-hidden="true"><span class="octicon octicon-link"></span></a>Preface</h1>
+
+<p>Kaltura Embed-Services will enable using Kaltura player with external data providers, with no dependencies of Kaltura back-end.</p>
+
+<p>The Embed-Services will be a thin layer between the player server side bundler and the external data provider.</p>
+
+<p>Motivation is to create a configurable layer via JSON configuration files that will be used to instruct the proxy how to mux data and BL from external source to Kaltura Player.</p>
+
+<p>Purpose of this document is to define the required components of the Embed-Services.</p>
+
+<h1>
+<a id="architecture" class="anchor" href="#architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>Architecture</h1>
+
+<h2>
+<a id="general" class="anchor" href="#general" aria-hidden="true"><span class="octicon octicon-link"></span></a>General</h2>
+
+<p>The Embed-Services will require the following:
+Create thin layer that will enable mitigating the differences of data structs and BL.</p>
+
+<p>Enable player server side bundler to pass proxy data from embed code to external data provider.</p>
+
+<p>Create synchronous event points in player to allow plugins to handle data transforms for external providers.</p>
+
+<h2>
+<a id="components" class="anchor" href="#components" aria-hidden="true"><span class="octicon octicon-link"></span></a>Components</h2>
+
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Embed Services</td>
+<td>Mitigating the differences of data structs and BL</td>
+</tr>
+</tbody>
+</table>
+
+<h1>
+<a id="embed-services" class="anchor" href="#embed-services" aria-hidden="true"><span class="octicon octicon-link"></span></a>Embed-Services</h1>
+
+<h2>
+<a id="general-1" class="anchor" href="#general-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>General</h2>
+
+<p>The Embed-Services resolves the data objects and BL differences between Kaltura Player and External Vendor.</p>
+
+<p>The Embed-Services is comprised of the following components:</p>
+
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proxy</td>
+<td>map player requests and external vendor responses</td>
+</tr>
+<tr>
+<td>Mapper</td>
+<td>maps External Vendor data to Kaltura required data types</td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>configuration files  instructions for mappers</td>
+</tr>
+<tr>
+<td>Lexer</td>
+<td>resolve configuration directives for mappers</td>
+</tr>
+</tbody>
+</table>
+
+<h2>
+<a id="proxy" class="anchor" href="#proxy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Proxy</h2>
+
+<p>The proxy maps player requests to external end points in order to retrieve the required data for playback.</p>
+
+<p>Proxy sequence is:</p>
+
+<ol>
+<li>Player issues request to Kaltura server side bundler.</li>
+<li>Server side bundler issues requests to the embed-services server.</li>
+<li>Embed-Services bridge parses request and determines which external end point API call to issue. </li>
+</ol>
+
+<p>image here</p>
+
+<h3>
+<a id="note" class="anchor" href="#note" aria-hidden="true"><span class="octicon octicon-link"></span></a>Note</h3>
+
+<blockquote>
+<p>A single player server side request may contain multiple API calls.
+If external end point doesn't implement some sort of aggregated API call mechanism then a single player request may result in multiple requests to external end point. </p>
+</blockquote>
+
+<h2>
+<a id="mapper" class="anchor" href="#mapper" aria-hidden="true"><span class="octicon octicon-link"></span></a>Mapper</h2>
+
+<p>The mapper is responsible to map data store items, collected from the external vendor, to the corresponding Kaltura Player data types.</p>
+
+<p>Each mapper implements one or more Kaltura data types, and uses JSON configuration in order to know what and how to map.</p>
+
+<h2>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration</h2>
+
+<p>Configuration files are simple JSON files that map data from one data source to another, e.g. from External data source to Kaltura data type objects.</p>
+
+<p>The JSON configuration may include:</p>
+
+<ol>
+<li>Constant data definitions.</li>
+<li>Template token definitions.</li>
+<li>User supplied vars.</li>
+<li>Math expressions.</li>
+<li>Regex match expressions.</li>
+<li>Custom function expressions.</li>
+</ol>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>kalturaDataObj1<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>ConstExternalData<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>kalturaDataObj2<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>{{TokenKeyNameFromExternalData}}<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>kalturaDataObj3<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>{VARS:someUserSuppliedVar}}<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>kalturaDataObj4<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>{MATH:2*2}}<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>kalturaDataObj5<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>{MATH:{{TokenKeyNameFromExternalData}}*2}}<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>kalturaDataObj6<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>{REGEX:/^some(.*?)/||{{TokenKeyNameFromExternalData}}}<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>kalturaDataObj7<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>{CUST_FUNC:someCustomFunctionName}}<span class="pl-pds">"</span></span>
+} </pre></div>
+
+<h2>
+<a id="lexer" class="anchor" href="#lexer" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lexer</h2>
+
+<p>The lexer rule is to interpret the configuration directive.</p>
+
+<p>See the Proxy Layer Configuration for available options.</p>
+
+<h2>
+<a id="caching" class="anchor" href="#caching" aria-hidden="true"><span class="octicon octicon-link"></span></a>Caching</h2>
+
+<p>In order to reduce round trips the proxy layer will be able to add configurable cache headers in the response to the Player Server side bundler.</p>
+
+<p>The player server side handles the caching policy according to the response headers.</p>
+
+<h2>
+<a id="logging" class="anchor" href="#logging" aria-hidden="true"><span class="octicon octicon-link"></span></a>Logging</h2>
+
+<p>Performance logs measuring load times against external vendor calls will be added to response data.</p>
+
+<h1>
+<a id="api" class="anchor" href="#api" aria-hidden="true"><span class="octicon octicon-link"></span></a>API</h1>
+
+<h2>
+<a id="general-2" class="anchor" href="#general-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>General</h2>
+
+<p>API calls will be redirected to the Proxy layer with the proxy data that is embedded on the client side embed code.</p>
+
+<p>The proxy data will be used by the proxy layer to form requests to the external data vendor end points.</p>
+
+<p>The Proxy layer will be used against calls coming from the player server side bundler as well as calls coming from the client side player on runtime. </p>
+
+<h2>
+<a id="api-calls" class="anchor" href="#api-calls" aria-hidden="true"><span class="octicon octicon-link"></span></a>API Calls</h2>
+
+<h3>
+<a id="flow-description" class="anchor" href="#flow-description" aria-hidden="true"><span class="octicon octicon-link"></span></a>Flow description</h3>
+
+<ol>
+<li>Client request for embed player - send proxy data.</li>
+<li>API multi-request call sent to proxy layer.</li>
+<li>Proxy layer process proxy data.</li>
+<li>Proxy layer send request to external vendor end point.</li>
+<li>Process external vendor response and map to Kaltura Data Onjects/BL.</li>
+<li>Return response to Kaltura player.</li>
+</ol>
+
+<h3>
+<a id="flowchart-diagram" class="anchor" href="#flowchart-diagram" aria-hidden="true"><span class="octicon octicon-link"></span></a>Flowchart Diagram</h3>
+
+<h1>
+<a id="deploymentembedding" class="anchor" href="#deploymentembedding" aria-hidden="true"><span class="octicon octicon-link"></span></a>Deployment&amp;Embedding</h1>
+
+<h2>
+<a id="player" class="anchor" href="#player" aria-hidden="true"><span class="octicon octicon-link"></span></a>Player</h2>
+
+<ol>
+<li>Player supports Dynamic embed.</li>
+<li>proxyData needs to be overloaded on embed request.</li>
+<li>Implement vendor specific logic in plugins.</li>
+</ol>
+
+<h2>
+<a id="proxy-1" class="anchor" href="#proxy-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Proxy</h2>
+
+<ol>
+<li>Deploy Proxy layer on a server.</li>
+<li>Server needs caching support (currently only APCU) for configuration files caching.</li>
+<li>Define mappers JSON configuration files.</li>
+</ol>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/kaltura/embed-services">Embed-Services</a> is maintained by <a href="https://github.com/kaltura">kaltura</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
+
