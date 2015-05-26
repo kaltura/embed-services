@@ -119,7 +119,7 @@
             curl_setopt($curl, CURLOPT_USERAGENT, isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '' );
             $ip = $this->getIp();
             if ($ip != ""){
-                curl_setopt($curl, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "X_FORWARDED_FOR: $ip", "Expect:"));
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "X_FORWARDED_FOR: $ip", "X-Forwarded-For: $ip", "Expect:"));
             }
 
             $response = curl_exec( $curl );
