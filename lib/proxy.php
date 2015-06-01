@@ -123,6 +123,10 @@
             }
 
             $response = curl_exec( $curl );
+            $cUrlError = curl_error($curl);
+			if($cUrlError){
+				$this->logger->error("Request failed " . $cUrlError);
+			}
             $response = preg_split( '/([\r\n][\r\n])\\1/', $response, 2 );
 
             list( $headers, $contents ) = $response;
