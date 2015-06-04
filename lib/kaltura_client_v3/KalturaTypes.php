@@ -12496,7 +12496,7 @@ class KalturaEntryContextDataResult extends KalturaContextDataResult
      *
      * @var array
      */
-    public $flavorCustomData;
+    public $pluginData;
 
 
 }

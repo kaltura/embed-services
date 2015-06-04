@@ -47,20 +47,22 @@ class flavorCustomData {
                     $encryptionUrl = $wgKalturaUdrmEncryptionServer."?custom_data=".$custom_data."&signature=".$signature;
                     $this->logger->info("UDRM encryption request: " . $encryptionUrl);
                     $response = $this->getJson($encryptionUrl);
+                    $this->logger->debug("UDRM encryption response: " . json_encode($response));
                     $contentId = "";
                     if (isset($response) && is_array($response) && isset($response[0]) && isset($response[0]["key_id"])){
                         $contentId = $response[0]["key_id"];
                     }
-
                     $flavorCustomData[ $val["FileID"] ] = array(
-                        "license" => array (
-                            "custom_data" => $custom_data,
-                            "signature" => $signature
-                        ),
+                        "custom_data" => $custom_data,
+                        "signature" => $signature,
                         "contentId" => $contentId
                     );
                     $this->logger->debug("Flavor UDRM data: " . json_encode($flavorCustomData[ $val["FileID"] ]));
                 }
+
+                $result = array(
+                    "flavorData" => $flavorCustomData
+                );
             }
         } else {
             $this->logger->warn("UDRM service: Request data not found, skipping UDRM request");
@@ -69,7 +71,7 @@ class flavorCustomData {
 	    $timer->stop();
         $this->logger->info("Finish UDRM process in ".$timer->getTimeMs(). " ms");
 	    
-	    return $flavorCustomData;
+	    return $result;
 	}
 
 	function getJson($url){
