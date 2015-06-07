@@ -44,20 +44,26 @@ class flavorCustomData {
                     $custom_data = rawurlencode(base64_encode($data));
                     $signature = rawurlencode(base64_encode(sha1($wgKalturaUdrmSecret . $data, true)));
 
-                    $encryptionUrl = $wgKalturaUdrmEncryptionServer."?custom_data=".$custom_data."&signature=".$signature;
-                    $this->logger->info("UDRM encryption request: " . $encryptionUrl);
-                    $response = $this->getJson($encryptionUrl);
-                    $this->logger->debug("UDRM encryption response: " . json_encode($response));
-                    $contentId = "";
-                    if (isset($response) && is_array($response) && isset($response[0]) && isset($response[0]["key_id"])){
-                        $contentId = $response[0]["key_id"];
-                    }
                     $flavorCustomData[ $val["FileID"] ] = array(
                         "custom_data" => $custom_data,
-                        "signature" => $signature,
-                        "contentId" => $contentId
+                        "signature" => $signature
                     );
+
+                    if (isset($val["URL"]) && (strpos($val["URL"], 'ism') !== false))
+                    {
+                        $encryptionUrl = $wgKalturaUdrmEncryptionServer."?custom_data=".$custom_data."&signature=".$signature;
+                        $this->logger->info("UDRM encryption request: " . $encryptionUrl);
+                        $response = $this->getJson($encryptionUrl);
+                        $this->logger->debug("UDRM encryption response: " . json_encode($response));
+                        $contentId = "";
+                        if (isset($response) && is_array($response) && isset($response[0]) && isset($response[0]["key_id"])){
+                            $contentId = $response[0]["key_id"];
+                        }
+                        $flavorCustomData[ $val["FileID"] ]["contentId"] = $contentId;
+                    }
+
                     $this->logger->debug("Flavor UDRM data: " . json_encode($flavorCustomData[ $val["FileID"] ]));
+
                 }
 
                 $result = array(
