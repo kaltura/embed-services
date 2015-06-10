@@ -24,7 +24,7 @@
                 'layout' => array(
                     'class' => 'LoggerLayoutPattern',
                     'params' => array(
-                        'conversionPattern' => "%s{suid} %date [%logger] %message%newline"
+                        'conversionPattern' => "%date [%level] [%logger] %s{suid} %message%newline"
                     )
                 ),
                 'params' => array(

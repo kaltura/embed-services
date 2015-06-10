@@ -50,12 +50,9 @@
 		}
 	
 		function get($type, $method, $url, $params){
-            $this->logger->info("Routing request to ".$url);
-
+		$reqId = rand ( 1000000, 9999999 );
             $data = json_encode($this->objectToArray($params), true);
-
-            $this->logger->debug("Routing type: ".$type.", method: ".$method);
-            $this->logger->debug("Routing request with params=". $data);
+            $this->logger->info("Routing request id: $reqId - URL: ".$url . ", type: ".$type.", method: ".$method .", params: ".$data);
 
             $timer = new Timer();
             $timer->start();
@@ -71,12 +68,13 @@
 
             if (empty($this->response) ||
                 (is_array($this->response) && count($this->response) == 0)){
-                $this->logger->warn("Response is empty");
+                $this->logger->warn("Response id $reqId - payload is empty");
+            } else {
+            	$this->logger->warn("Response id $reqId - payload received");
+				$this->logger->debug("Response id $reqId - ". json_encode($result));
             }
-
-            $this->logger->debug("Response=". $result);
             $timer->stop();
-            $this->logger->info("Response time = ".$timer->getTimeMs(). " ms");
+            $this->logger->info("Response id $reqId - time = ".$timer->getTimeMs(). " ms");
 		}
 
 		function setData($dataStores){

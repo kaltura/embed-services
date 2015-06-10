@@ -99,9 +99,7 @@ abstract class BaseObject {
 		$classVars = array();
     	$dtoConf = array();
 
-    	$this->loggers->dto->debug("Resolving params: implementClass=".json_encode($implementClass));
-    	$this->loggers->dto->debug("Resolving params: responseClass=".$responseClass);
-    	$this->loggers->dto->debug("Resolving params: unwrap=".$unwrap);
+    	$this->loggers->dto->debug("Resolving params: implementClass=".json_encode($implementClass) . ", responseClass=".$responseClass . ", unwrap=".$unwrap);
 
 		//Get all implemented classes vars and data transfer objects
 		if (is_array($implementClass)){
@@ -118,11 +116,11 @@ abstract class BaseObject {
 	    //Iterate over all data transfer objects
         foreach ($dtoConf as $classKey => $dtoConfObj) {
             $dtoConfObj = $this->resolveConfiguration($dtoConfObj);
-            $this->loggers->dto->info("Resolving ".$classKey);
+            $this->loggers->dto->info("Try to implement class ".$classKey);
             //Fetch the key-value pairs mappings
         	$resolvers = $dtoConfObj["resolver"];
         	//Get the Kaltura object class properties names
-        	$classVarsObj = $classVars[$classKey];
+        	$classVarsObj = isset($classVars[$classKey]) ? array_keys($classVars[$classKey]) : array();
         	$this->loggers->dto->debug("classVarsObj=".json_encode($classVarsObj));
 
         	//Check if an iterator is set
@@ -141,7 +139,7 @@ abstract class BaseObject {
   			// check if needs wrapping for iterator
   			$items = (isset($dtoConfObj["pointers"]["wrap"]) && $dtoConfObj["pointers"]["wrap"] == "true") ? array($items) : $items;
 
-        	$this->loggers->dto->trace("Resolve items for iteration: ".json_encode($items));
+        	$this->loggers->dto->debug("Resolve items for iteration: ".json_encode($items));
 
         	$filters = (isset($dtoConfObj["pointers"]["filters"]) &&
                        !empty($dtoConfObj["pointers"]["filters"])) ? $dtoConfObj["pointers"]["filters"] : NULL;
@@ -204,7 +202,7 @@ abstract class BaseObject {
                     $resolvedItem = "";
                     //Resolve keys using DTO mapping definitions
                     foreach ($resolvers as $resolverKey => $resolverExp) {
-                        if (array_key_exists($resolverKey, $classVarsObj)){
+                        if (in_array($resolverKey, $classVarsObj)){
                             $this->loggers->dto->debug("Found key '".$resolverKey."' in resolver and in implemented class, resolving...");
                             if (is_array($resolverExp)){
                                 $resolvedItem[$resolverKey] = array();
