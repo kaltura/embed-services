@@ -14,7 +14,8 @@ class flavorCustomData {
         $this->logger->info("Start UDRM process");
         $timer = new Timer();
         $timer->start();
-        
+        $result = array();
+
 	    global $wgKalturaUdrmSecret;
 	    global $wgTvpapiAccountId;
 	    global $wgKalturaUdrmEncryptionServer;

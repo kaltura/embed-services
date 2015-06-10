@@ -133,7 +133,11 @@ abstract class BaseObject {
         	$this->loggers->dto->info("Set iterator: ".$iterator);
 
   			//Fetch data to iterate over
-  			$items = (!is_null($iterator) || is_numeric($iterator)) ? $data[$iterator] : $data;
+  			if (!is_null($iterator) || is_numeric($iterator)){
+  			    $items = isset($data[$iterator]) ? $data[$iterator] : array();
+  			} else {
+  			    $items = $data;
+  			}
   			// check if needs wrapping for iterator
   			$items = (isset($dtoConfObj["pointers"]["wrap"]) && $dtoConfObj["pointers"]["wrap"] == "true") ? array($items) : $items;
 
