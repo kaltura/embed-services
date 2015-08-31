@@ -21,6 +21,9 @@
 		"accessControlActions": {},
 		"flavorAssets": {},
 		"messages": {},
-		"actions": {}
+		"actions": {},
+		"pluginData": {
+		  "KalturaDrmEntryContextPluginData" : "{CUST_FUNC:flavorCustomData}}"
+		}
 	}
 }
