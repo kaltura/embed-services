@@ -62,6 +62,7 @@ class Main {
 			$logger->info("Request service ".$service);
 			$serviceHandler = call_user_func(array(ucfirst($service), 'getClass'));
 			if ($serviceHandler->isValidService($tokens)){
+
 			    $response = $serviceHandler->run($tokens);
 			} else {
                 $response = new stdClass;
@@ -69,7 +70,11 @@ class Main {
 
             if (isset($tokens["callback"])){
                 return $tokens["callback"]."(".json_encode($response, true).");";
-            } else {
+            }
+            else if(isset($tokens["format"]) && $tokens["format"] == 1){
+                return json_encode($response, true);
+            }
+            else {
                 if ($serviceHandler->requireSerialization){
                     $response = @serialize($response);
                 }
