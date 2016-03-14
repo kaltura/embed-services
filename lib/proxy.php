@@ -14,12 +14,21 @@
 				if (in_array($service, $config["services"])){
 
 				    $this->logger->debug("Found request service ".$service." in config services");
-				    if (isset($urlTokens[$config["token"]])){
+
+				    $found = false;
+				    $token = "";
+				    foreach($urlTokens as $key=>$value){
+                        if(strpos($key, $config["token"]) !== false){
+                            $found = true;
+                            $token = $value;
+                        }
+                    }
+				    if ($found){
 				        $this->logger->debug("Found request service token ".$config["token"]." in request");
 				        if ($config["decodeToken"] == "true"){
-						    $this->partnerRequestData = json_decode($urlTokens[$config["token"]]);
+						    $this->partnerRequestData = json_decode($token);
 						} else {
-						    $this->partnerRequestData = $urlTokens[$config["token"]];
+						    $this->partnerRequestData = $token;
 						}
 						$this->get($config["type"], $config["method"], $config["redirectTo"], $this->partnerRequestData);
 						DataStore::getInstance()->setData("request", "", json_decode(json_encode($this->partnerRequestData), true));

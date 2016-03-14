@@ -8,7 +8,8 @@ class Multirequest extends BaseObject{
 	}
 
 	function isValidService($data) {
-         if (isset($data["1:service"]) && $data["1:service"] == "baseEntry"){
+         $key = array_search("baseentry", array_map('strtolower', $data));
+         if (($key !== false) && (strpos($key, ":service") !== false)){
             return true;
          } else {
             return false;
