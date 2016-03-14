@@ -48,7 +48,15 @@ class Main {
 
 	function resolveRequest($request) {
 	    $logger = Logger::getLogger("main");
-		parse_str(urldecode($request), $tokens);
+	    $method = $_SERVER['REQUEST_METHOD'];
+	    if ($method == "POST"){
+	        $rawInput = file_get_contents('php://input');
+	        parse_str(urldecode($rawInput), $tokens);
+	        $tokens["service"] = "multirequest";
+	    } else {
+	        parse_str(urldecode($request), $tokens);
+	    }
+
 		$service = isset($tokens["service"]) ? $tokens["service"] : "";
 		if (!empty($service) && isset($service) && class_exists($service, false)) {
 			$logger->info("Request service ".$service);
