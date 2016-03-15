@@ -12,8 +12,16 @@ abstract class BaseObject {
 
 	public function setClientConfiguration($data){
 	    $this->rawDataString = $data;
-	    if (isset($data["1:filter:freeText"])){
-            $configObj = json_decode($data["1:filter:freeText"], TRUE);
+        $found = false;
+        $filter = "";
+        foreach($data as $key=>$value){
+            if(strpos($key,":filter:freeText") !== false){
+                $found = true;
+                $filter = $value;
+            }
+        }
+        if ($found){
+            $configObj = json_decode($filter, TRUE);
             if (isset($configObj["config"])){
                 $filterConfig = $configObj["config"];
                 if (isset($filterConfig[strtolower(get_class($this))])){
