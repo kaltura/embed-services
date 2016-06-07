@@ -32,6 +32,7 @@ abstract class BaseObject {
 	}
 
 	private function resolveConfiguration($defaultConfig){
+	    global $wgEmbedServicesVersion, $wgPartnerId;
 	    if ($this->clientConfiguration != NULL){
 	        if (isset($this->clientConfiguration["filters"])){
 	            if (!isset($defaultConfig["pointers"]["filters"])){
@@ -46,10 +47,20 @@ abstract class BaseObject {
                 $defaultConfig["pointers"]["vars"] = array_merge($defaultConfig["pointers"]["vars"], $this->clientConfiguration["vars"]);
             }
         }
+        //If partner id was set in localsettings(when deployment is per instance) then check if it wasn't already passed
+        //via flashvar and if not then set it
+        if (isset($wgPartnerId) && !empty($wgPartnerId)){
+            if (!isset($defaultConfig["pointers"]["vars"])){
+                $defaultConfig["pointers"]["vars"] = array();
+            }
+            if (!isset($defaultConfig["pointers"]["vars"]["partnerId"])){
+                $defaultConfig["pointers"]["vars"]["partnerId"] = $wgPartnerId;
+            }
+        }
         //Set request data to be available to all DTOs
         $defaultConfig["pointers"]["vars"]["requestData"] = DataStore::getInstance()->getData("request");
-        global $wgEmbedServicesVersion;
         $defaultConfig["pointers"]["vars"]["embedServicesVersion"] = $wgEmbedServicesVersion;
+
         return $defaultConfig;
 	}
 
