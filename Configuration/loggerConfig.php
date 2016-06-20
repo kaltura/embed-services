@@ -14,6 +14,9 @@
             'UDRM' => array(
                 'appenders' => array('myMainAppender')
             ),
+            'FPS' => array(
+                'appenders' => array('myMainAppender')
+            ),
             'DTO' => array(
                 'appenders' => array('myMainAppender')
             )

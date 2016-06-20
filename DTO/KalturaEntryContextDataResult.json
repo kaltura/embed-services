@@ -23,7 +23,8 @@
 		"messages": {},
 		"actions": {},
 		"pluginData": {
-		  "KalturaDrmEntryContextPluginData" : "{CUST_FUNC:flavorCustomData}}"
+		  "KalturaDrmEntryContextPluginData" : "{CUST_FUNC:flavorCustomData}}",
+		  "KalturaFairplayEntryContextPluginData" : "{CUST_FUNC:fpsCertificate}}"
 		}
 	}
 }
