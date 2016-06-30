@@ -3,7 +3,6 @@
 class flavorCustomData {
 
 	var $data;
-	public $requireSerialization = true;
 	private $logger;
 
 	function __construct() {
@@ -50,19 +49,6 @@ class flavorCustomData {
                         "signature" => $signature
                     );
 
-                    if (isset($val["URL"]) && (strpos($val["URL"], 'ism') !== false))
-                    {
-                        $encryptionUrl = $wgKalturaUdrmEncryptionServer."?custom_data=".$custom_data."&signature=".$signature;
-                        $this->logger->info("UDRM encryption request: " . $encryptionUrl);
-                        $response = $this->getJson($encryptionUrl);
-                        $this->logger->debug("UDRM encryption response: " . json_encode($response));
-                        $contentId = "";
-                        if (isset($response) && is_array($response) && isset($response[0]) && isset($response[0]["key_id"])){
-                            $contentId = $response[0]["key_id"];
-                        }
-                        $flavorCustomData[ $val["FileID"] ]["contentId"] = $contentId;
-                    }
-
                     $this->logger->debug("Flavor UDRM data: " . json_encode($flavorCustomData[ $val["FileID"] ]));
 
                 }
@@ -80,34 +66,5 @@ class flavorCustomData {
 	    
 	    return $result;
 	}
-
-	function getJson($url){
-	global $cUrlTimeout;
-        $cURL = curl_init();
-
-        curl_setopt($cURL, CURLOPT_URL, $url);
-        curl_setopt($cURL, CURLOPT_HTTPGET, true);
-        curl_setopt($cURL, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($cURL, CURLOPT_TIMEOUT, $cUrlTimeout);
-
-        curl_setopt($cURL, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json'
-        ));
-
-        try{
-            $result = json_decode(curl_exec($cURL), true);
-            $cUrlError = curl_error($cURL);
-            if($cUrlError){
-                $this->logger->error("UDRM request failed " . $cUrlError);
-                $result = "";
-            }
-        } catch ( Exception $e){
-            $this->logger->error("UDRM request failed " . $e->getMessage());
-            $result = "";
-        }
-        curl_close($cURL);
-
-        return $result;
-    }
 }
 ?>
