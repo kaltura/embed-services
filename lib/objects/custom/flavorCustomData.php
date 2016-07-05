@@ -17,6 +17,7 @@ class flavorCustomData {
 
 	    global $wgKalturaUdrmSecret;
 	    global $wgTvpapiAccountId;
+	    global $wgAdditionalCasSystemId;
 	    global $wgKalturaUdrmEncryptionServer;
         $custom_data = array();
 	    $reqData = DataStore::getInstance()->getData("request");
@@ -36,7 +37,8 @@ class flavorCustomData {
                         "account_id" => $wgTvpapiAccountId,
                         "content_id" => $val["CoGuid"],
                         "files" => "",
-                        "udid" => $udid
+                        "udid" => $udid,
+                        "additional_cas_system" => $wgAdditionalCasSystemId
                     ));
 
                     $this->logger->debug("Flavor UDRM metadata: " . $data);
