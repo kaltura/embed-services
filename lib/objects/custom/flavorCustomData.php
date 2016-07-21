@@ -27,6 +27,10 @@ class flavorCustomData {
 	        isset ($reqData["initObj"]["UDID"])){
             $siteGuid = $reqData["initObj"]["SiteGuid"];
             $udid = $reqData["initObj"]["UDID"];
+            $additionalCasSystemId = $wgAdditionalCasSystemId;
+            if (isset($reqData["groupID"])){
+                $additionalCasSystemId = $reqData["groupID"];
+            }
             $flavorassets = DataStore::getInstance()->getData("flavorassets");
             $flavorCustomData = array();
             if (isset($flavorassets["Files"])){
@@ -38,7 +42,7 @@ class flavorCustomData {
                         "content_id" => $val["CoGuid"],
                         "files" => "",
                         "udid" => $udid,
-                        "additional_cas_system" => $wgAdditionalCasSystemId
+                        "additional_cas_system" => $additionalCasSystemId
                     ));
 
                     $this->logger->debug("Flavor UDRM metadata: " . $data);
