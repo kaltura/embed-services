@@ -10,6 +10,10 @@ class Session extends BaseObject {
 	    $res->setBody($this->get());
 	}
 
+	function run(){
+        return $this->get();
+    }
+
 	function get() {
 		return $this->resolveDtoList("KalturaStartWidgetSessionResponse", NULL, true);
 	}

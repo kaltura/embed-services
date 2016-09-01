@@ -1,6 +1,6 @@
 <?php
 
-require_once (dirname(__FILE__)."/Configuration/defaultSettings.php");
+require_once (dirname(__FILE__)."/Configuration/DefaultSettings.php");
 include_once (dirname(__FILE__).'/Utils/logger/Logger.php');
 include_once ($gLoggerConfig);
 
@@ -13,20 +13,20 @@ error_reporting($currErrorLevel);
 $logger = Logger::getLogger("main");
 $logger->info("Start process");
 $logger->info("Request received: ".$_SERVER["REQUEST_URI"]);
-$start = microtime(true);
 
 $qs       = $_SERVER['QUERY_STRING'];
 $main     = new Main();
+$timer = new Timer();
+$timer->start();
 $response = $main->resolveRequest($qs);
 print_r($response);
-$total = microtime(true) - $start;
-
-$logger->info("Finish process in ".$total. " seconds");
+$timer->stop();
+$logger->info("Finish process in ".$timer->getTimeMs(). " ms");
 
 class Main {
 
 	function __construct() {
-	    $requiredModules = array('/lib', '/lib/objects', '/Utils', '/lib/kaltura_client_v3', '/lib/kaltura_client_v3/KalturaPlugins');
+	    $requiredModules = array('/lib', '/lib/objects', '/lib/objects/custom', '/Utils', '/lib/kaltura_client_v3', '/lib/kaltura_client_v3/KalturaPlugins');
 	    foreach ($requiredModules as $requiredModule) {
 	        $this->loadModules($requiredModule);
 	    }
@@ -48,22 +48,33 @@ class Main {
 
 	function resolveRequest($request) {
 	    $logger = Logger::getLogger("main");
-		parse_str(urldecode($request), $tokens);
+	    $method = $_SERVER['REQUEST_METHOD'];
+	    if ($method == "POST"){
+	        $rawInput = file_get_contents('php://input');
+	        parse_str(urldecode($rawInput), $tokens);
+	        $tokens["service"] = "multirequest";
+	    } else {
+	        parse_str(urldecode($request), $tokens);
+	    }
+
 		$service = isset($tokens["service"]) ? $tokens["service"] : "";
 		if (!empty($service) && isset($service) && class_exists($service, false)) {
 			$logger->info("Request service ".$service);
 			$serviceHandler = call_user_func(array(ucfirst($service), 'getClass'));
 			if ($serviceHandler->isValidService($tokens)){
-			    $request = new ProxyRequest($service, $tokens);
-			    $serviceHandler->setClientConfiguration($tokens);
-                $response = $serviceHandler->get();
+
+			    $response = $serviceHandler->run($tokens);
 			} else {
                 $response = new stdClass;
             }
 
             if (isset($tokens["callback"])){
                 return $tokens["callback"]."(".json_encode($response, true).");";
-            } else {
+            }
+            else if(isset($tokens["format"]) && $tokens["format"] == 1){
+                return json_encode($response, true);
+            }
+            else {
                 if ($serviceHandler->requireSerialization){
                     $response = @serialize($response);
                 }

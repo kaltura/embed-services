@@ -8,18 +8,27 @@
 		private $logger;
 
 		function __construct($service, $urlTokens){
-		$this->logger = Logger::getLogger("main");
+		    $this->logger = Logger::getLogger("proxy");
 			$this->config = $this->getConfig();
 			foreach($this->config as $config){
 				if (in_array($service, $config["services"])){
 
 				    $this->logger->debug("Found request service ".$service." in config services");
-				    if (isset($urlTokens[$config["token"]])){
+
+				    $found = false;
+				    $token = "";
+				    foreach($urlTokens as $key=>$value){
+                        if(strpos($key, $config["token"]) !== false){
+                            $found = true;
+                            $token = $value;
+                        }
+                    }
+				    if ($found){
 				        $this->logger->debug("Found request service token ".$config["token"]." in request");
 				        if ($config["decodeToken"] == "true"){
-						    $this->partnerRequestData = json_decode($urlTokens[$config["token"]]);
+						    $this->partnerRequestData = json_decode($token);
 						} else {
-						    $this->partnerRequestData = $urlTokens[$config["token"]];
+						    $this->partnerRequestData = $token;
 						}
 						$this->get($config["type"], $config["method"], $config["redirectTo"], $this->partnerRequestData);
 						DataStore::getInstance()->setData("request", "", json_decode(json_encode($this->partnerRequestData), true));
@@ -50,14 +59,12 @@
 		}
 	
 		function get($type, $method, $url, $params){
-            $this->logger->info("Routing request to ".$url);
-
+		$reqId = rand ( 1000000, 9999999 );
             $data = json_encode($this->objectToArray($params), true);
+            $this->logger->info("Routing request id: $reqId - URL: ".$url . ", type: ".$type.", method: ".$method .", params: ".$data);
 
-            $this->logger->debug("Routing type: ".$type.", method: ".$method);
-            $this->logger->debug("Routing request with params=". $data);
-
-            $start = microtime(true);
+            $timer = new Timer();
+            $timer->start();
 			switch($type){
 			    case "file":
 			        $result = $this->getFile($method, $url, $data);
@@ -70,16 +77,17 @@
 
             if (empty($this->response) ||
                 (is_array($this->response) && count($this->response) == 0)){
-                $this->logger->warn("Response is empty");
+                $this->logger->warn("Response id $reqId - payload is empty");
+            } else {
+            	$this->logger->warn("Response id $reqId - payload received");
+				$this->logger->debug("Response id $reqId - ". json_encode($result));
             }
-
-            $this->logger->debug("Response=". $result);
-            $total = microtime(true) - $start;
-            $this->logger->info("Response time = ".$total. " seconds");
+            $timer->stop();
+            $this->logger->info("Response id $reqId - time = ".$timer->getTimeMs(). " ms");
 		}
 
 		function setData($dataStores){
-		    $this->logger->info("Set data");
+		    $this->logger->info("Set response data in containers");
 			foreach ($dataStores as $dataStore => $container) {
 			    $this->logger->debug("Set ".$dataStore." data in container ". $container);
 				DataStore::getInstance()->setData($dataStore, $container, $this->response);
@@ -118,13 +126,18 @@
             curl_setopt($curl, CURLOPT_USERAGENT, isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '' );
             $ip = $this->getIp();
             if ($ip != ""){
-                curl_setopt($curl, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "X_FORWARDED_FOR: $ip", "Expect:"));
+                curl_setopt($curl, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "X_FORWARDED_FOR: $ip", "X-Forwarded-For: $ip", "Expect:"));
             }
 
             $response = curl_exec( $curl );
+            $cUrlError = curl_error($curl);
+			if($cUrlError){
+				$this->logger->error("Request failed " . $cUrlError);
+			}
             $response = preg_split( '/([\r\n][\r\n])\\1/', $response, 2 );
 
             list( $headers, $contents ) = $response;
+            $this->logger->debug("Response headers=". $headers);
             $headers = preg_split( '/[\r\n]+/', $headers );
 
             foreach($headers as $header) {
@@ -139,11 +152,16 @@
 		function getIp(){
             $ip = '';
             $http_headers = getallheaders();
-            if (isset($http_headers['X_KALTURA_REMOTE_ADDR'])){
+            if (isset($http_headers['X-KALTURA-REMOTE-ADDR'])){
+                $tempList = explode(',', $http_headers['X-KALTURA-REMOTE-ADDR']);
+                $ip = $tempList[0];
+                $this->logger->debug("Request origin IP=". $ip);
+            } elseif (isset($http_headers['X_KALTURA_REMOTE_ADDR'])){
                 $tempList = explode(',', $http_headers['X_KALTURA_REMOTE_ADDR']);
                 $ip = $tempList[0];
-            } else {
-                $this->logger->warn('Could not retrive origin IP');
+                $this->logger->debug("Request origin IP=". $ip);
+            }else {
+                $this->logger->warn('Could not retrieve origin IP');
             }
 
             return $ip;

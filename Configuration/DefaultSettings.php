@@ -1,6 +1,6 @@
 <?php
     // The version of the library:
-    $wgEmbedServicesVersion = '0.2';
+    $wgEmbedServicesVersion = '0.4.2';
 
     // Default debug mode
     $wgEnableScriptDebug = false;
@@ -10,6 +10,14 @@
     $gLoggerConfig = "Configuration/loggerConfig.php";
     $gDtoDir = "DTO/";
 
+    //cUrl connection timeout
+    $cUrlTimeout = 10;
+
+    //Set unique ID for log
+    $_SERVER['suid'] = str_replace(".", "", microtime(true));
+
+    //Define this id for additional CAS system checks in uDRM, default is 0, meaning no additional system defined
+    $wgAdditionalCasSystemId = 0;
 
     /*********************************************************
      * Include local settings override:

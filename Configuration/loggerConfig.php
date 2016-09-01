@@ -8,6 +8,15 @@
             'main' => array(
                 'appenders' => array('myMainAppender')
             ),
+            'proxy' => array(
+                'appenders' => array('myMainAppender')
+            ),
+            'UDRM' => array(
+                'appenders' => array('myMainAppender')
+            ),
+            'FPS' => array(
+                'appenders' => array('myMainAppender')
+            ),
             'DTO' => array(
                 'appenders' => array('myMainAppender')
             )
@@ -18,7 +27,7 @@
                 'layout' => array(
                     'class' => 'LoggerLayoutPattern',
                     'params' => array(
-                        'conversionPattern' => "%date [%logger] %message%newline"
+                        'conversionPattern' => "%date [%level] [%logger] %s{suid} %message%newline"
                     )
                 ),
                 'params' => array(

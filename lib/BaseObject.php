@@ -12,8 +12,16 @@ abstract class BaseObject {
 
 	public function setClientConfiguration($data){
 	    $this->rawDataString = $data;
-	    if (isset($data["1:filter:freeText"])){
-            $configObj = json_decode($data["1:filter:freeText"], TRUE);
+        $found = false;
+        $filter = "";
+        foreach($data as $key=>$value){
+            if(strpos($key,":filter:freeText") !== false){
+                $found = true;
+                $filter = $value;
+            }
+        }
+        if ($found){
+            $configObj = json_decode($filter, TRUE);
             if (isset($configObj["config"])){
                 $filterConfig = $configObj["config"];
                 if (isset($filterConfig[strtolower(get_class($this))])){
@@ -24,6 +32,7 @@ abstract class BaseObject {
 	}
 
 	private function resolveConfiguration($defaultConfig){
+	    global $wgEmbedServicesVersion, $wgPartnerId;
 	    if ($this->clientConfiguration != NULL){
 	        if (isset($this->clientConfiguration["filters"])){
 	            if (!isset($defaultConfig["pointers"]["filters"])){
@@ -38,10 +47,20 @@ abstract class BaseObject {
                 $defaultConfig["pointers"]["vars"] = array_merge($defaultConfig["pointers"]["vars"], $this->clientConfiguration["vars"]);
             }
         }
+        //If partner id was set in localsettings(when deployment is per instance) then check if it wasn't already passed
+        //via flashvar and if not then set it
+        if (isset($wgPartnerId) && !empty($wgPartnerId)){
+            if (!isset($defaultConfig["pointers"]["vars"])){
+                $defaultConfig["pointers"]["vars"] = array();
+            }
+            if (!isset($defaultConfig["pointers"]["vars"]["partnerId"])){
+                $defaultConfig["pointers"]["vars"]["partnerId"] = $wgPartnerId;
+            }
+        }
         //Set request data to be available to all DTOs
         $defaultConfig["pointers"]["vars"]["requestData"] = DataStore::getInstance()->getData("request");
-        global $wgEmbedServicesVersion;
         $defaultConfig["pointers"]["vars"]["embedServicesVersion"] = $wgEmbedServicesVersion;
+
         return $defaultConfig;
 	}
 
@@ -89,7 +108,9 @@ abstract class BaseObject {
         $this->loggers->main = Logger::getLogger("main");
         $this->loggers->dto = Logger::getLogger("DTO");
         $this->loggers->main->info("Resolving ".get_called_class());
-        $start = microtime(true);
+
+        $timer = new Timer();
+        $timer->start();
 
 		//Fetch data
 		$data = $this->getData();
@@ -97,9 +118,7 @@ abstract class BaseObject {
 		$classVars = array();
     	$dtoConf = array();
 
-    	$this->loggers->dto->debug("Resolving params: implementClass=".json_encode($implementClass));
-    	$this->loggers->dto->debug("Resolving params: responseClass=".$responseClass);
-    	$this->loggers->dto->debug("Resolving params: unwrap=".$unwrap);
+    	$this->loggers->dto->debug("Resolving params: implementClass=".json_encode($implementClass) . ", responseClass=".$responseClass . ", unwrap=".$unwrap);
 
 		//Get all implemented classes vars and data transfer objects
 		if (is_array($implementClass)){
@@ -116,23 +135,30 @@ abstract class BaseObject {
 	    //Iterate over all data transfer objects
         foreach ($dtoConf as $classKey => $dtoConfObj) {
             $dtoConfObj = $this->resolveConfiguration($dtoConfObj);
-            $this->loggers->dto->info("Resolving ".$classKey);
+            $this->loggers->dto->info("Try to implement class ".$classKey);
+            //Fetch the key-value pairs mappings
         	$resolvers = $dtoConfObj["resolver"];
-        	$classVarsObj = $classVars[$classKey];
+        	//Get the Kaltura object class properties names
+        	$classVarsObj = isset($classVars[$classKey]) ? array_keys($classVars[$classKey]) : array();
         	$this->loggers->dto->debug("classVarsObj=".json_encode($classVarsObj));
 
+        	//Check if an iterator is set
         	$iterator = isset($dtoConfObj["pointers"]["iterator"]) &&
         				!empty($dtoConfObj["pointers"]["iterator"]) ||
         				is_numeric($dtoConfObj["pointers"]["iterator"]) ? $dtoConfObj["pointers"]["iterator"] : NULL;
 
         	$this->loggers->dto->info("Set iterator: ".$iterator);
 
-  			//Fetch items to iterate over
-  			$items = (!is_null($iterator) || is_numeric($iterator)) ? $data[$iterator] : $data;
+  			//Fetch data to iterate over
+  			if (!is_null($iterator) || is_numeric($iterator)){
+  			    $items = isset($data[$iterator]) ? $data[$iterator] : array();
+  			} else {
+  			    $items = $data;
+  			}
   			// check if needs wrapping for iterator
   			$items = (isset($dtoConfObj["pointers"]["wrap"]) && $dtoConfObj["pointers"]["wrap"] == "true") ? array($items) : $items;
 
-        	$this->loggers->dto->trace("Resolve items for iteration: ".json_encode($items));
+        	$this->loggers->dto->debug("Resolve items for iteration: ".json_encode($items));
 
         	$filters = (isset($dtoConfObj["pointers"]["filters"]) &&
                        !empty($dtoConfObj["pointers"]["filters"])) ? $dtoConfObj["pointers"]["filters"] : NULL;
@@ -140,7 +166,7 @@ abstract class BaseObject {
         	$vars = (isset($dtoConfObj["pointers"]["vars"]) &&
                     !empty($dtoConfObj["pointers"]["vars"])) ? $dtoConfObj["pointers"]["vars"] : NULL;
 
-        	//Iterate over items and convert using the DTO
+        	//Iterate over data and convert using the DTO
         	if (isset($items) && is_array($items)){
                 foreach ($items as $item) {
                     //Check if this is a subType and if it should be included
@@ -195,7 +221,7 @@ abstract class BaseObject {
                     $resolvedItem = "";
                     //Resolve keys using DTO mapping definitions
                     foreach ($resolvers as $resolverKey => $resolverExp) {
-                        if (array_key_exists($resolverKey, $classVarsObj)){
+                        if (in_array($resolverKey, $classVarsObj)){
                             $this->loggers->dto->debug("Found key '".$resolverKey."' in resolver and in implemented class, resolving...");
                             if (is_array($resolverExp)){
                                 $resolvedItem[$resolverKey] = array();
@@ -215,8 +241,8 @@ abstract class BaseObject {
         	}
         }
 
-		$total = microtime(true) - $start;
-        $this->loggers->main->info("Resolve DTO time = ".$total. " seconds");
+		$timer->stop();
+        $this->loggers->main->info("Resolve DTO time = ".$timer->getTimeMs(). " ms");
         if ($unwrap){
 		    return isset($resolved[0]) ? $resolved[0] : new $implementClass();
 		} elseif (is_null($responseClass)){
